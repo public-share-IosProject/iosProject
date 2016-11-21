@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<title>我的认证</title>
+	<link rel="stylesheet" href="css/frozen.min.css">
+	<link rel="stylesheet" href="css/common.min.css">
+	<link rel="stylesheet" href="css/renzheng.min.css">
+</head>
+
+<body id="app" style="background-color: #fff">
+	<div class="pages">
+		<header class="ui-header ui-header-positive ui-border-b headers">
+			<i class="ui-icon-return" @click="close"></i>
+			<h1>等待认证</h1>
+		</header>
+
+		<div class="waiting-auth-wrap">
+			<div class="img-wrap">
+				<img src="img/authing.png">
+			</div>
+			<span class="waiting-auth-title">等待认证中...</span>
+		</div>
+	</div>
+
+	<script src="js/WebViewJavascriptBridge.min.js"></script>
+	<script src="js/webLib.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script>
+		var load = function() {
+			var vm = new Vue({
+				el: '#app',
+
+				methods: {
+					close: function() {
+						window.location.href = 'userInfo.html';
+					}
+				}
+			});
+
+			window.webEvn.close = vm.close;
+		}
+
+		var wb = new webLib();
+		wb.debug(true);
+		wb.init(load, true);
+	</script>
+</body>
+
+</html>

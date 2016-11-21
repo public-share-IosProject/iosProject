@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>我的钱包</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/wallet.min.css">
+    <link rel="stylesheet" href="css/dropload.min.css">
+</head>
+
+<body id="app">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>我的钱包</h1>
+        </header>
+        <div class="ui-row-flex ui-whitespace wallet_msgline">
+            <div class="ui-col ui-col ">
+                <div class="account">账户余额:</div>
+                <span class="account_money" v-text="money | currency '￥'"></span>
+            </div>
+            <div class="ui-btn-wrap">
+                <button class="ui-btn wallet_btn" style="color:#666666;" @click="go2Withdraw">提现</button>
+                <button class="ui-btn ui-btn-danger wallet_btn" @click="go2Recharge">充值</button>
+            </div>
+        </div>
+        <div class="ui-row-flex ui-whitespace border-t expense_msgline">
+            <div class="ui-col ui-col border-r">
+                <div class="expense_title">总收入</div>
+                <span class="expense_money" v-text="total_income | currency '￥'"></span>
+            </div>
+            <div class="ui-col ui-col ">
+                <div class="expense_title">总支出</div>
+                <span class="expense_money" v-text="total_expenditure | currency '￥'"></span>
+            </div>
+        </div>
+        <!-- 银行卡列表 -->
+        <div class="ui-whitespace bank-list">
+            <div class="ui-row-flex ui-border-b bank-card-item" v-if="banks.length > 0" v-for="card in banks">
+                <div class="ui-col ui-nowrap" v-text="card.card_name"></div>
+                <div class="ui-col ui-col-3 ui-nowrap" v-text="card.card_number"></div>
+                <div class="ui-col">
+                    <button class="ui-btn-s ui-btn-red" @click="deleteBankCard(card.id)">删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加银行卡 -->
+        <div class="ui-whitespace bank-card-wrapper">
+            <div class="ui-row-flex bank-card-plus" @click="go2PlusBankCard">
+                <div class="ui-col "><i class="ui-icon-add"></i></div>
+                <div class="ui-col-3 plus-msg">添加银行卡</div>
+                <div class="ui-col"><i class="ui-icon-arrow"></i></div>
+            </div>
+        </div>
+
+        <div id="content">
+            <div id="walletMsgs"></div>
+        </div>
+    </div>
+
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/dropload.min.js"></script>
+    <script src="js/my-wallet-drop.min.js"></script>
+</body>
+
+</html>

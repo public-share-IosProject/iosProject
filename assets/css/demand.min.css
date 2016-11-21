@@ -1,0 +1,157 @@
+.card {
+    width: 100%;
+    height: 165px;
+    text-align: center;
+    background: #FFF;
+}
+
+.card .imgs {
+    display: inline-block;
+    margin-top: 30px;
+    width: 180px;
+    height: 80px;
+}
+
+.free-cardword, .demand-cardword {
+    text-align: center;
+}
+
+.card .number {
+    color: #FC3768;
+}
+
+.line {
+    height: 40px;
+    padding: 5px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.line .lineblock {
+    height: 30px;
+    line-height: 30px;
+}
+
+.lineblock .demand_img {
+    width: 30px;
+    display: inline-block;
+}
+
+.lineblock .demand_inputline {
+    width: 30%;
+    display: inline-block;
+}
+
+.lineblock .img-box {
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: -5px;
+}
+
+.lineblock .add_minus {
+    padding-top: 5px;
+    float: right;
+}
+
+.lineblock .add_minus a {
+    display: inline-block;
+}
+
+.lineblock .add_minus a img {
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.lineblock img {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.demand_inputline input {
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    border: 0;
+    background: none;
+}
+
+.demand_img img {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.lineblock .number {
+    display: inline-block;
+    color: #FC361D;
+}
+
+.line .pay {
+    text-align: right;
+    padding: 0 0 0 0;
+}
+
+.pay .buttons {
+    width: 50px;
+    height: 20px;
+    line-height: 20px;
+    padding: 3px 5px;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    display: inline-block;
+    color: black;
+}
+
+.pay .red {
+    color: white;
+    background-color: #FC361D;
+}
+
+.demand_buttons {
+    padding: 0;
+}
+
+.demand_btn {
+    font-size: 12px;
+    height: auto;
+    line-height: 25px;
+    margin-top: 3px;
+}
+
+.card-form {
+    margin-top: 5px;
+}
+
+.demand-cards-wrap {
+    margin-top: 10px;
+}
+
+.demand-cards {
+    height: 50px;
+    background-color: #fff;
+    line-height: 45px;
+}
+
+.card-list-img {
+    width: 30px;
+    display: inline-block;
+    margin-left: 12px;
+    margin-right: 5px;
+}
+
+.card-list-img i {
+    font-size: 18px;
+    color: #E8A21A;
+    margin-right: 5px;
+}
+
+.restcard-number {
+    text-align: right;
+    margin-right: 10px;
+}
+
+.no-more-cards {
+    text-align: center;
+    background-color: #e0e0e0;
+    margin-top: 10px;
+}

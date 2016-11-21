@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>修改手机号</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/change.min.css">
+</head>
+
+<body id="app">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>修改手机号</h1>
+        </header>
+        <div class="ui-form ui-border-t">
+            <div class="ui-form-item change border-b">
+                <input type="number" placeholder="请输入您的手机号码" id="mobileInput" v-model="mobile">
+                <a href="#" class="ui-icon-close" @click="trashMobileInput"></a>
+            </div>
+            <div class="validate_line">
+                <div class="ui-form-item change validate_input">
+                    <input type="number" id="codeInput" placeholder="请输入验证码" v-model="inputCode">
+                    <a href="#" class="ui-icon-close" @click="trashCodeInput"></a>
+                </div>
+                <div class="validate_button">
+                    <button class="ui-btn-lg ui-btn-danger" @click="sendMsg" v-text="btnMsg" :disabled="codeDisabled">
+                    </button>
+                </div>
+            </div>
+            <div class="changemsg border-t">
+                <span v-text="msg"></span>
+            </div>
+            <div class="ui-btn-wrap change_button" style="padding-top:30px;">
+                <button class="ui-btn-lg ui-btn-danger" @click="submit">确认</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var wb, vm;
+
+        var load = function() {
+            vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        oldMobile: '',
+                        mobile: '',
+                        inputCode: '', //用户输入的验证码
+                        codeDisabled: false,
+                        btnMsg: '获取验证码',
+                        msg: '请填写您的新手机号码!'
+                    }
+                },
+
+                created: function() {
+                    this.loadPreviousData();
+                },
+
+                methods: {
+                    /**
+                     * 加载上一页保存的数据
+                     * @return
+                     */
+                    loadPreviousData: function() {
+                        // 获取并保存用户旧手机号码
+                        var data = wb.getData();
+
+                        if (data != null && data.userInfoData_mobile != null) {
+                            this.oldMobile = data.userInfoData_mobile;
+                            this.mobile = this.oldMobile;
+                        } else {
+                            wb.showTip('页面已过期,请重新操作');
+                            this.back();
+                        }
+                    },
+
+                    /**
+                     * 校验后,请求发送短信验证码
+                     * @return
+                     */
+                    sendMsg: function() {
+                        if (!this.checkPhoneRex()) {
+                            this.msg = '号码有误,请重新输入!';
+                            return;
+                        }
+                        if (this.mobile == this.oldMobile) {
+                            this.msg = '请输入新手机号码!';
+                            return;
+                        }
+                        this.getCode();
+                    },
+
+                    /**
+                     * 提交修改手机号码请求
+                     * @return
+                     */
+                    submit: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=User&a=postMobileReset',
+                            ZYRJM: window.webEvn.token,
+                            new_mobile: self.mobile,
+                            code: self.inputCode
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.back();
+                            } else {
+                                self.msg = data.info;
+                            }
+                        })
+                    },
+
+                    /**
+                     * 清除输入的电话号码
+                     * @return
+                     */
+                    trashMobileInput: function() {
+                        this.mobile = '';
+                        $('#mobileInput').focus();
+                    },
+
+                    /**
+                     * 清除输入的验证码
+                     * @return
+                     */
+                    trashCodeInput: function() {
+                        this.inputCode = '';
+                        $('#codeInput').focus();
+                    },
+
+                    /**
+                     * 手机号码正则校验
+                     * @return
+                     */
+                    checkPhoneRex: function() {
+                        this.disabled = false;
+                        return /^1[3|4|5|7|8][0-9]\d{4,8}$/.test(this.mobile);
+                    },
+
+                    /**
+                     * 发送获取验证码请求
+                     * @return
+                     */
+                    getCode: function() {
+                        var self = this;
+                        self.codeDisabled = true;
+                        self.btnMsg = '发送中';
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Auth&a=getCode',
+                            ZYRJM: window.webEvn.token,
+                            mobile: self.mobile
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.realCode = data.code;
+                                self.msg = '请输入验证码';
+                                changeBtnAction();
+                            } else {
+                                self.msg = data.info;
+                                self.btnMsg = '获取验证码';
+                                self.codeDisabled = false;
+                            }
+                        });
+                    },
+
+                    /**
+                     * 返回上一级页面
+                     * @return
+                     */
+                    back: function() {
+                        window.location.href = 'userInfo.html';
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+
+
+        var count = 60; //timer变量,控制短信间隙
+
+        /**
+         * 发送短信按钮倒计时
+         * @return
+         */
+        function changeBtnAction() {
+            var _vm = vm;
+            _vm.codeDisabled = true;
+            _vm.btnMsg = '请在' + count + '秒内输入';
+            interValObj = window.setInterval(setRemainTime, 1000);
+        }
+
+        /**
+         * 发送短信倒计时定时器
+         */
+        function setRemainTime() {
+            var _vm = vm;
+            if (count == 0) {
+                window.clearInterval(interValObj);
+                _vm.codeDisabled = false;
+                _vm.btnMsg = '重新发送验证码';
+            } else {
+                count--;
+                _vm.btnMsg = '请在' + count + '秒内输入';
+            }
+        }
+    </script>
+</body>
+
+</html>

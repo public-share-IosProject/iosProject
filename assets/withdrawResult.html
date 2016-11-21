@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<title>消息详情</title>
+	<link rel="stylesheet" href="css/frozen.min.css">
+	<link rel="stylesheet" href="css/common.min.css">
+	<link rel="stylesheet" href="css/demandDetail.min.css">
+	<link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body style="background:#FFF;" id="app">
+	<div class="pages" style="background:#FFF;">
+		<header class="ui-header ui-header-positive ui-border-b headers">
+			<i class="ui-icon-return" @click="close"></i>
+			<h1>消息详情</h1>
+		</header>
+		<div class="ui-row-flex ui-whitespace demand_message" style="margin-top: 0.3rem;">
+			<div class="ui-col ui-col-3" style="text-align:center;">
+				<i class="fa fa-clock-o"></i>
+				<span v-text="msg.time"></span>
+			</div>
+		</div>
+		<div class="demand_block">
+			<div class="demandsdetail">
+				<div class="demandsmsg" style="min-height: 3rem;">
+					<div class="msg_details word-break" v-text="msg.detail"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="js/zepto.min.js"></script>
+	<script src="js/webLib.min.js"></script>
+	<script src="js/WebViewJavascriptBridge.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script>
+    var vmData = {
+        quota: '&#039;',
+        quotaRex: /&#039;/g
+    };
+
+		var load = function() {
+			var vm = new Vue({
+				el: '#app',
+
+				data: function() {
+					return {
+						msg: {}
+					}
+				},
+
+				created: function() {
+					this.loadData();
+				},
+
+				methods: {
+
+					loadData: function() {
+						var self = this;
+						var data = wb.getData();
+
+						if (data.userMsgData !== undefined && data.userMsgData !== null) {
+							self.msg = data.userMsgData;
+
+							var date = new Date(self.msg.created_at * 1000);
+
+							var minutes = parseInt(date.getMinutes());
+							if (minutes === 0) {
+								minutes = '00';
+							} else if (minutes < 10) {
+								minutes = '0' + minutes;
+							}
+
+							var time = date.getFullYear() + '.' + (date.getMonth() + 1) + '.' + (date.getDate()) + ' ' + date.getHours() + ':' + minutes;
+							self.msg.time = time;
+
+                            if (self.msg.detail.indexOf(vmData.quota) != -1) {
+                                self.msg.detail = self.msg.detail.replace(vmData.quotaRex, '\'');
+                            }
+
+						} else {
+							wb.showTip('页面已过期');
+							self.close();
+						}
+					},
+
+					/**
+					 * 关闭当前页面
+					 * @return
+					 */
+					close: function() {
+						wb.Finish();
+					}
+				}
+			});
+
+			window.webEvn.close = vm.close;
+		};
+
+		$(document).ready(function() {
+			wb = new webLib();
+			wb.debug(true);
+			wb.init(load, true);
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>提现</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/withdraw.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body id="app">
+    <div class="pages">
+        <header class="ui-header ui-header-positive border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>提现</h1>
+        </header>
+        <div class="ui-form ui-border-t" style="margin-top: 10px;">
+            <div class="ui-form-item ui-form-item-show border-b">
+                <span>账号余额</span>
+                <span v-text="restMoney | currency '￥'" style="color:#FC3768; margin-left: 20px;"></span>
+            </div>
+            <div class="withdraw_message">
+                <i class="fa fa-lightbulb-o " style="font-size:18px;"></i> 您提现的金额将在两个工作日内打款至您的个人账户中
+            </div>
+            <div class="ui-form-item ui-form-item-show ui-row-flex ui-whitespace border-b">
+                <div class="ui-col"><label><i class="fa fa-credit-card icon-bank-card"></i></label></div>
+                <div class="ui-col ui-col-8">
+                    <div class="ui-select">
+                        <select v-model="selectedId">
+                            <option id="selectWord" value="" selected hidden disabled>请选择银行卡</option>
+                            <option v-for="card in banks" :value="card.id" v-text="card.content"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-form-item ui-form-item-show border-b">
+                <label>提现金额 &nbsp;&nbsp;</label>
+                <input type="number" placeholder="请输入金额" id="moneyInput" v-model="withDrawCash">
+                <a href="#" class="ui-icon-close" @click="trashWithDrawCash"></a>
+            </div>
+            <div class="ui-btn-wrap withdraw_button" style="padding-top:50px;">
+                <button class="ui-btn-lg ui-btn-danger" @click="submit" :disabled="submitBtnDisabled">确认提现</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+        var wb;
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        restMoney: 0, //账户剩余金额
+                        bankAccount: '', //银行卡账号
+                        withDrawCash: '', //提现金额
+                        submitBtnDisabled: false,
+                        selectedId: null, // 选中的银行卡ID
+                        banks: [] // 银行卡列表
+                    }
+                },
+
+                created: function() {
+                    this.loadRestMoney();
+                    this.loadBankList();
+                },
+
+                methods: {
+                    /**
+                     * 页面加载时获取用户余额
+                     * @return
+                     */
+                    loadRestMoney: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserWallet&a=getUserMoney',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1 && data.money != null) {
+                                data.money.money != null ? self.restMoney = data.money.money : self.restMoney = 0;
+                            } else {
+                                wb.showTip(data.info);
+                                self.back();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 加载用户已认证的银行卡列表
+                     * @return
+                     */
+                    loadBankList: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserBankCard&a=getUserBankCardLegalList',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.banks = data.banks;
+
+                                if (self.banks.length !== 0) {
+                                    self.banks.forEach(function(card) {
+                                        card.content = card.card_name + ' ' + card.card_number;
+                                    });
+                                } else {
+                                    var card = {
+                                        content: '尚无已认证的银行卡'
+                                    };
+                                    self.banks.push(card);
+                                }
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+
+                    /**
+                     * 提现提交
+                     * @return
+                     */
+                    submit: function() {
+                        var self = this;
+
+                        if (this.checkInput()) {
+                            wb.Alert('提示', '是否提现', function(data) {
+                                if (data.status == 1) {
+                                    self.submitBtnDisabled = true;
+                                    var params = {
+                                        url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserWallet&a=postUserWithdrawMoney',
+                                        ZYRJM: window.webEvn.token,
+                                        money: self.withDrawCash,
+                                        bank_card_id: self.selectedId
+                                    };
+                                    wb.Ajax(params, function(data) {
+                                        if (data.status == 1) {
+                                            wb.showTip('提交成功');
+                                            self.go2MyWallet();
+                                        } else {
+                                            wb.showTip(data.info);
+                                            self.submitBtnDisabled = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    },
+
+                    /**
+                     * 清空输入的银行账号
+                     * @return
+                     */
+                    trashBankAccount: function() {
+                        this.bankAccount = '';
+                        $('#bankInput').focus();
+                    },
+
+                    /**
+                     * 清空输入的提现金额
+                     * @return
+                     */
+                    trashWithDrawCash: function() {
+                        this.withDrawCash = '';
+                        $('#moneyInput').focus();
+                    },
+
+                    /**
+                     * 输入的提现金额校验
+                     * @return
+                     */
+                    checkInput: function() {
+                        if (this.selectedId === undefined || this.selectedId === '') {
+                            wb.showTip('请选择银行卡');
+                            return false;
+                        }
+
+                        if (!(/^(([1-9]\d*)|0)(\.\d{1,2})?$/.test(this.withDrawCash)) ||
+                            parseInt(this.withDrawCash) > parseInt(this.restMoney)) {
+                            wb.showTip('请输入正确的提现余额');
+                            return false;
+                        }
+                        return true;
+                    },
+
+                    /**
+                     * 跳转至我的钱包
+                     * @return
+                     */
+                    go2MyWallet: function() {
+                        this.back();
+                    },
+
+                    /**
+                     * 返回至上一级页面
+                     * @return
+                     */
+                    back: function() {
+                        window.history.back();
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

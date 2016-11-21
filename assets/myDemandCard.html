@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>我的需求卡</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/demand.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body id="app">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>我的需求卡</h1>
+        </header>
+        <div class="card">
+            <img class="imgs" :src="demandCardUrl" />
+            <div class="free-cardword">今日免费需求卡数: <span class="number" v-text="freeCardNumber + '张' "></span></div>
+            <div class="demand-cardword">剩余收费需求卡数: <span class="number" v-text="demandCardNumber + '张' "></span></div>
+        </div>
+        <div class="ui-form ui-border-t ui-border-b card-form">
+            <div class="ui-row-flex ui-whitespace line">
+                <div class="ui-col ui-col-6 lineblock">
+                    <div class="demand_img">
+                        <i class="fa fa-credit-card " style="font-size:18px;color:#E8A21A;margin-right: 5px;"></i>
+                    </div>
+                    <div class="demand_inputline">
+                        <input type="number" placeholder="请输入您要购买的需求卡数量" v-model="number">
+                    </div>
+                    <div class="add_minus">
+                        <a href="#">
+                            <div class="img-box" @click="plus" style="margin-right: 12px;"><img src="img/add.png" /></div>
+                        </a>
+                        <a href="#">
+                            <div class="img-box" @click="sub"><img src="img/minus.png"></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row-flex ui-whitespace line">
+                <div class="ui-col ui-col-4 lineblock ui-nowrap">
+                    <i class="fa fa-yen " style="font-size:18px;color:#E8A21A;margin:2px 15px 0 5px;"></i>
+                    <span class="number" v-text="card_price + '元'"></span><span v-text="'(' + card_credit + '积分)'"></span>
+                </div>
+                <div class="ui-col ui-col-6 lineblock pay">
+                    <div class="ui-btn-wrap demand_buttons">
+                        <button class="ui-btn demand_btn" style="color:#666666;" @click="submit(1)">积分支付</button>
+                        <button class="ui-btn ui-btn-danger demand_btn" @click="submit(2)">余额支付</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="demand-cards-wrap" v-if="cards.length > 0">
+            <div class="ui-row-flex border-t demand-cards" v-for="card in cards" track-by="$index">
+                <div class="card-list-img">
+                    <i class="fa fa-credit-card "></i>
+                </div>
+                <div class="ui-col ui-col-6" v-text="card.created_at"></div>
+                <div class="ui-col ui-col-4 restcard-number" v-text="card.number + '张'"></div>
+            </div>
+        </div>
+        <div class="no-more-cards" v-else>
+            <div>没有更多需求卡,请点击购买</div>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            defaultImg: 'img/banner/bannerok.jpg'
+        };
+        var wb;
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        demandCardUrl: vmData.defaultImg,
+                        number: 1,
+                        card_id: '',
+                        card_price: 0,
+                        card_credit: 0,
+                        card: {
+                            price: 0,
+                            credit: 0,
+                            url: ''
+                        },
+                        cards: [],
+                        freeCardNumber: 0,
+                        demandCardNumber: 0
+                    }
+                },
+
+                created: function() {
+                    this.loadPreviousData();
+                    this.loadCardInfo();
+                    this.loadPointAndCardInfo();
+                },
+
+                computed: {
+                    card_price: function() {
+                        return this.card.price * this.number;
+                    },
+
+                    card_credit: function(){
+                        return this.card.credit * this.number;
+                    }
+                },
+
+                methods: {
+                    /**
+                     * 加载上一页数据
+                     * 暂时固定为1，后面需修改为多类型卡片
+                     * @return
+                     */
+                    loadPreviousData: function() {
+                        var data = {
+                            card_id: 1
+                        };
+                        this.card_id = data.card_id;
+                    },
+
+                    /**
+                     * load free cards and demand cards information
+                     * @return
+                     */
+                    loadPointAndCardInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserCard&a=getTaskUserCard',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                if (data.cards !== null && data.cards.length > 0) {
+                                    self.cards = data.cards;
+
+                                    var now, restSecTime;
+                                    var restDemandCard = 0;
+
+                                    self.cards.forEach(function(item) {
+                                        now = Date.now();
+                                        restSecTime = item.effective_time - (now - item.created_at * 1000) / 1000;
+                                        item.created_at = self.formatSec(restSecTime);
+
+                                        restDemandCard += parseInt(item.number);
+                                    });
+
+                                    self.demandCardNumber = restDemandCard;
+                                }
+
+                                if (data.count !== null) {
+                                    self.freeCardNumber = data.count.number;
+                                }
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 加载需求卡信息
+                     * @return
+                     */
+                    loadCardInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Card&a=getCardDetail',
+                            ZYRJM: window.webEvn.token,
+                            card_id: self.card_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.card = data.card;
+
+                                self.card_price = self.card.price;
+                                self.card_credit = self.card.credit;
+
+                                if (self.card.url !== null && self.card.url !== '') {
+                                    self.demandCardUrl = self.card.url;
+                                }
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 提交支付
+                     * @param  number 支付类型
+                     */
+                    submit: function(type) {
+                        var self = this;
+
+                        if (!self.checkInputCardCount()) {
+                            wb.showTip('请输入正确购买数量');
+                            return;
+                        }
+
+                        wb.Alert('提示', '是否确认购买?', function(data) {
+                            if (data.status == 1) {
+                                var spend = 0;
+
+                                spend = (type == 1) ? self.card_credit : self.card_price;
+
+                                var params = {
+                                    url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserCard&a=postBuyCard',
+                                    ZYRJM: window.webEvn.token,
+                                    number: self.number,
+                                    card_id: self.card_id,
+                                    type: type,
+                                    spend: spend
+                                };
+
+                                wb.Ajax(params, function(data) {
+                                    if (data.status == 1) {
+                                        wb.showTip('支付成功');
+                                        window.location.reload();
+                                    } else {
+                                        wb.showTip(data.info);
+                                    }
+                                });
+                            }
+                        });
+                    },
+
+                    /**
+                     * 增加卡片数
+                     */
+                    plus: function() {
+                        this.number++;
+                        this.card_price = this.card.price * this.number;
+                        this.card_credit = this.card.credit * this.number;
+                    },
+
+                    /**
+                     * 减少卡片数
+                     */
+                    sub: function() {
+                        if (--this.number < 0) {
+                            this.number = 0;
+                        }
+                        this.card_price = this.card.price * this.number;
+                        this.card_credit = this.card.credit * this.number;
+                    },
+
+                    /**
+                     * 对输入的卡片数进行校验
+                     */
+                    checkInputCardCount: function() {
+                        return /^[1-9]\d*$/.test(this.number);
+                    },
+
+                    /**
+                     * 剩余时间格式化
+                     * @param  {number} seconds - 剩余秒数
+                     * @return
+                     */
+                    formatSec: function(seconds) {
+                        var sec = parseInt(seconds);
+                        var minutes = 0;
+                        var hours = 0;
+
+                        if (sec > 60) {
+                            minutes = parseInt(sec / 60);
+
+                            if (minutes > 60) {
+                                hours = parseInt(minutes / 60);
+                                minutes = parseInt(minutes % 60);
+                            }
+                        }
+
+                        var result = '剩余';
+
+                        if (hours > 0) {
+                            result += hours + '小时';
+                        }
+                        if (minutes > 0) {
+                            result += minutes + '分钟';
+                        }
+                        if (hours <= 0 && minutes <= 0 && sec > 0) {
+                            result += sec + '秒';
+                        }
+                        if (hours == 0 && minutes == 0 && sec == 0) {
+                            result = '已到期';
+                        }
+                        return result;
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        wb.Finish();
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+.withdraw_message{
+	background-color:#e0e0e0;
+	font-size: 12px;
+	height: 40px;
+	line-height: 40px;
+	text-align:center;
+}
+.withdraw_button{
+	background:#e0e0e0;
+}
+.icon-bank-card{
+	color: #FD9941;
+}
+.ui-select select{
+	color: #777;
+}

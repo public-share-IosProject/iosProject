@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>联系我们</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/person.min.css">
+</head>
+
+<body id="app" style="background-color: #fff">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>联系我们</h1>
+        </header>
+        <div style="margin-left: 10px; margin-top:10px;font-size: 0.15rem;color: black;">
+            <div>客服qq: <span v-text="qq_number"></span></div>
+            <div style="margin-top: 5px;">地址: <span v-text="address"></span></div>
+        </div>
+        <div style="margin-top: 10px;" v-text="noConnectWay" v-else></div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            phoneCmd: 'phone://'
+        };
+        var wb;
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        connectMethods: [],
+                        qq_number: '',
+                        address: '',
+                        noConnectWay: ''
+                    };
+                },
+
+                created: function() {
+                    this.loadContactInfo();
+                },
+
+                methods: {
+                    /**
+                     * 加载联系我们的联系方式
+                     * @return
+                     */
+                    loadContactInfo: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=AboutUs&a=getConnectUs'
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                if (data.connectMethods !== null && data.connectMethods.length !== 0) {
+                                    self.qq_number = data.connectMethods[0].qq_number;
+                                    self.address = data.connectMethods[0].address;
+                                } else {
+                                    self.noConnectWay = '暂无联系方式';
+                                }
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        })
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        wb.Finish();
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

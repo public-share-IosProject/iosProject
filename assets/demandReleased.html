@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>需求详情-已接单</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/demandDetail.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body style="background:#FFF;" id="app">
+    <div class="pages" style="background:#FFF;">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>我的发布-已接单</h1>
+        </header>
+        <div class="ui-nowrap demandtitle" v-text="taskInfo.title"></div>
+        <div class="ui-row-flex ui-whitespace demand_message">
+            <div class="ui-col ui-col-2" style="text-align:right;">
+                <i class="fa fa-user"></i>
+                <span v-text="taskInfo.hot"></span><span>热度</span>
+            </div>
+            <div class="ui-col ui-col-3" style="text-align:center;">
+                <i class="fa fa-clock-o"></i>
+                <span v-text="taskInfo.created_at"></span>
+            </div>
+            <div class="ui-col ui-col-2" style="text-align:left;color:#E8A21A;">
+                <i class="fa fa-yen"></i>
+                <span v-text="taskInfo.reward"></span>
+            </div>
+        </div>
+        <div class="demand_block">
+            <div class="demandsdetail">
+                <div class="demandsphotoblock border-b">
+                    <img :src="img" class="demandsphoto" v-if="taskInfo.image_url.length > 0" v-for="img of taskInfo.image_url" track-by="$index" @click="showBigTaskImg(img)" />
+                </div>
+                <div class="demandsmsg">
+                    <div class="msg_line">
+                        <div class="msg_title">佣金:</div>
+                        <div class="moneynumber" v-text="taskInfo.reward"></div>
+                    </div>
+                    <div class="msg_line">
+                        <div class="msg_title msg-task-address">剩余时间:</div>
+                        <span class="ui-nowrap msg_details" v-text="taskInfo.restTime"></span>
+                    </div>
+                    <div class="z-task-address">
+                        <div class="msg_title msg-task-address z-task-address-left">任务地址:</div>
+                        <span class="demand_address z-task-address-right" v-text="taskInfo.address"></span>
+                    </div>
+                    <div class="msg_title">详情:</div>
+                    <div class="msg_details" v-text="taskInfo.detail"></div>
+                </div>
+            </div>
+        </div>
+        <div class="detail_man">
+            <div class="demand_man_block">
+                <img class="demand_headpic" :src="taskInfo.url" @click="showBigHeadImg" />
+                <span class="msges" v-text="taskInfo.username"></span>
+                <span class="msges" v-text="taskInfo.sex"></span>
+                <span class="level" v-text="taskInfo.level"></span>
+            </div>
+        </div>
+    </div>
+    <footer class="ui-footer ui-footer-stable ui-border-t demand_foot">
+        <div class="ui-row-flex ui-whitespace" style="padding:0;font-size:0.16rem;">
+            <div class="ui-col ui-col">
+                <button class="btn-demanddetail-3" @click="getTaskFinish">确认完成</button>
+            </div>
+            <div class="ui-col ui-col demand_borderleft">
+                <button class="btn-demanddetail-3" @click="chat2User">联系对方</button>
+            </div>
+        </div>
+    </footer>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+        var vmData = {
+            preUrl: 'http://www.renrenshangjin.com/',
+            defaultImg: 'img/user_header.png',
+            chatWithCmd: 'chat://',
+            smImg: '%23S%23.'
+        };
+        var wb;
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        taskInfo: {
+                            task_id: '',
+                            title: '',
+                            deadline: '',
+                            reward: '',
+                            username: '',
+                            sex: '',
+                            level: '',
+                            created_at: '',
+                            user_iamge: vmData.defaultImg,
+                            hot: 0,
+                            image_url: [],
+                            apply_time: 0,
+                            restTime: ''
+                        },
+                        mobile: '',
+                        hx_sdk: '',
+                        _task_id: '',
+                        preUrl: vmData.preUrl,
+                        defaultImg: vmData.defaultImg,
+                        chatWithCmd: vmData.chatWithCmd,
+                        smImg: vmData.smImg
+                    }
+                },
+
+                created: function() {
+                    this.loadPreviousData();
+                    this.loadTaskInfo();
+                },
+
+                methods: {
+                    loadPreviousData: function() {
+                        var self = this;
+                        var data = wb.getData();
+
+                        if (data != null && data.userMsgData !== undefined && data.userMsgData !== null) {
+                            self._task_id = data.userMsgData.task_id;
+                        } else if (data != null && data.myReleaseData_task_id != null) {
+                            self._task_id = data.myReleaseData_task_id;
+                        } else {
+                            wb.showTip('页面已过期');
+                            self.close();
+                        }
+                    },
+
+                    /**
+                     * 加载任务需求详情
+                     * @return
+                     */
+                    loadTaskInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserTask&a=getUserReleaseDetailSecond',
+                            ZYRJM: window.webEvn.token,
+                            task_id: self._task_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.taskInfo = data.task;
+                                self.mobile = data.mobile;
+                                self.hx_sdk = data.hx_sdk;
+
+                                var now = Date.now();
+                                var restSecs = self.taskInfo.effictive_time * 60 - (now - self.taskInfo.created_at * 1000) / 1000;
+                                self.taskInfo.restTime = self.formatSec(restSecs);
+
+                                if (self.taskInfo.url != null && self.taskInfo.url != '') {
+                                    self.taskInfo.url = self.preUrl + self.taskInfo.url.replace('\.', self.smImg);
+                                } else {
+                                    self.taskInfo.url = self.defaultImg;
+                                }
+
+                                if (self.taskInfo.image_url == null) {
+                                    self.taskInfo.image_url = [];
+                                }
+
+                                if (self.taskInfo.image_url.length !== 0) {
+                                    self.taskInfo.image_url.forEach(function(item, index) {
+                                        self.taskInfo.image_url.$set(index, self.preUrl + item.replace(/\./, self.smImg));
+                                    });
+                                }
+
+                                if (self.taskInfo.level != null) {
+                                    self.taskInfo.level = 'lv.' + self.taskInfo.level;
+                                }
+
+                                if (self.taskInfo.reward != null) {
+                                    self.taskInfo.reward += '元';
+                                }
+
+                                var date = new Date(data.task.created_at * 1000);
+                                self.taskInfo.created_at = (date.getMonth() + 1) + "月" +
+                                    date.getDate() + "日 " +
+                                    date.getHours() + ":" +
+                                    date.getMinutes();
+
+                                wb.Location(function(city){
+                                    if (city != null) {
+                                        var dis
+                                        if (self.taskInfo.latitude == -2 || self.taskInfo.longitude == -2) {
+                                            dis = 0
+                                        } else {
+                                            dis = self.rad2dis(city.latitude, city.lontitude, self.taskInfo.latitude, self.taskInfo.longitude);
+                                            dis = (Number.isNaN(dis) !== true ? dis : 0);
+                                        }
+                                        self.taskInfo.address += ' ('+ dis +'千米)'
+                                    }
+                                });
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 任务确认完成
+                     * @return
+                     */
+                    getTaskFinish: function() {
+                        var self = this;
+                        wb.Alert('提示', '是否要确认完成', function(data) {
+                            if (data.status == 1) {
+                                var params = {
+                                    url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=getTaskFinish',
+                                    ZYRJM: window.webEvn.token,
+                                    task_id: self.taskInfo.task_id
+                                };
+
+                                wb.Ajax(params, function(data) {
+                                    if (data.status == 1) {
+                                        wb.showTip('确认成功');
+                                        self.close();
+                                    } else {
+                                        wb.showTip(data.info);
+                                    }
+                                });
+                            }
+                        });
+                    },
+
+                    /**
+                     * 查看任务大图
+                     * @param  {string} img_url 原图url
+                     * @return
+                     */
+                    showBigTaskImg: function(img_url) {
+                        var param = {
+                            remoteUrl: img_url.replace(this.smImg, '\.')
+                        };
+                        wb.ImageShow(param);
+                    },
+
+                    /**
+                     * 查看头像大图
+                     * @return
+                     */
+                    showBigHeadImg: function() {
+                        var param = {};
+                        param.remoteUrl = (this.taskInfo.url.indexOf(this.smImg) != -1) ?
+                            this.taskInfo.url.replace(this.smImg, '\.') : this.taskInfo.url;
+
+                        wb.ImageShow(param);
+                    },
+
+                    /**
+                     * 剩余时间格式化
+                     * @param  {number} seconds - 剩余秒数
+                     * @return
+                     */
+                    formatSec: function(seconds) {
+                        var sec = parseInt(seconds);
+                        var minutes = 0;
+                        var hours = 0;
+
+                        if (sec > 60) {
+                            minutes = parseInt(sec / 60);
+
+                            if (minutes > 60) {
+                                hours = parseInt(minutes / 60);
+                                minutes = parseInt(minutes % 60);
+                            }
+                        }
+
+                        var result = '剩余';
+
+                        if (hours > 0) {
+                            result += hours + '小时';
+                        }
+                        if (minutes > 0) {
+                            result += minutes + '分钟';
+                        }
+                        if (hours <= 0 && minutes <= 0 && sec > 0) {
+                            result += sec + '秒';
+                        }
+                        if (hours == 0 && minutes == 0 && sec == 0) {
+                            result = '已到期';
+                        }
+                        return result;
+                    },
+
+                    /**
+                     * 角度转为弧度
+                     * @return {[type]} [description]
+                     */
+                    deg2rad: function(degree) {
+                        return degree * Math.PI / 180;
+                    },
+
+                    /**
+                     * 经纬度转为距离
+                     * @param  {[type]} lng1 [description]
+                     * @param  {[type]} lat1 [description]
+                     * @param  {[type]} lng2 [description]
+                     * @param  {[type]} lat2 [description]
+                     * @return {[type]}      [description]
+                     */
+                    rad2dis: function(lng1, lat1, lng2, lat2) {
+                        var radLat1 = this.deg2rad(lat1);
+                        var radLat2 = this.deg2rad(lat2);
+                        var radLng1 = this.deg2rad(lng1);
+                        var radLng2 = this.deg2rad(lng2);
+                        var par1 = radLat1 - radLat2;
+                        var par2 = radLng1 - radLng2;
+                        return Math.round((2 * Math.asin(Math.sqrt(Math.pow(Math.sin(par1 / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(par2 / 2), 2))) * 6378.137) * 100) / 100;
+                    },
+
+                    /**
+                     * 联系用户
+                     * @return
+                     */
+                    chat2User: function() {
+                        window.location.href = this.chatWithCmd + this.toUnicode(this.hx_sdk + '&' + this.taskInfo.username);
+                    },
+
+                    /**
+                     * 中文转Unicode
+                     * @param {string} theString 需要转换的字符串
+                     */
+                    toUnicode: function(theString) {
+                        var unicodeString = '';
+                        for (var i = 0; i < theString.length; i++) {
+                            var theUnicode = theString.charCodeAt(i).toString(16).toUpperCase();
+                            while (theUnicode.length < 4) {
+                                theUnicode = '0' + theUnicode;
+                            }
+                            theUnicode = '\\u' + theUnicode;
+                            unicodeString += theUnicode;
+                        }
+                        return unicodeString;
+                    },
+
+                    /**
+                     * 清除消息页面的数据
+                     * @param  {Function} callback [description]
+                     * @return {[type]}            [description]
+                     */
+                    clearMsgData: function(callback) {
+                        var data = wb.getData();
+                        data.userMsgData = null;
+                        wb.setData(data, callback);
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        this.clearMsgData(function() {
+                            wb.Finish();
+                        });
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>个人信息</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/person.min.css">
+    <style>
+        .vux-rater {
+            text-align: left;
+            display: inline-block;
+            line-height: normal;
+        }
+
+        .vux-rater a {
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            color: #ccc;
+        }
+
+        .vux-rater a:last-child {
+            padding-right: 2px!important;
+            margin-right: 0px!important;
+        }
+
+        .vux-rater a:hover {
+            color: #ffdd99;
+        }
+
+        .vux-rater a.is-disabled {
+            color: #ccc !important;
+            cursor: not-allowed;
+        }
+
+        .vux-rater-box {
+            position: relative;
+        }
+
+        .vux-rater-inner {
+            position: relative;
+            display: inline-block;
+        }
+
+        .vux-rater-outer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: inline-block;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body id="vPersonalInfo">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>个人信息</h1>
+        </header>
+        <div class="messages">
+            <a href="#">
+                <div class="ui-row-flex ui-whitespace messageline_head">
+                    <div class="upload-img-area" @click="changeUserImg"></div>
+                    <div class="ui-col ui-col-2 msghead">头像</div>
+                    <div class="ui-col ui-col-7" @click="showBigImage">
+                        <img class="imgs" :src="imgSrc" />
+                    </div>
+                </div>
+            </a>
+            <a href="modifyNickname.html">
+                <div class="ui-row-flex ui-whitespace messageline">
+                    <div class="ui-col ui-col-2 msghead">昵称</div>
+                    <div class="ui-col ui-col-7">
+                        <span v-text="user.username"></span>
+                        <i class="ui-icon-arrow i2"></i>
+                    </div>
+                </div>
+            </a>
+            <a href="modifyGender.html">
+                <div class="ui-row-flex ui-whitespace messageline" style="margin-top:0;">
+                    <div class="ui-col ui-col-2 msghead">性别</div>
+                    <div class="ui-col ui-col-7">
+                        <span v-text="user.sex"></span>
+                        <i class="ui-icon-arrow i3"></i>
+                    </div>
+                </div>
+            </a>
+            <a href="modifyTrade.html">
+                <div class="ui-row-flex ui-whitespace messageline">
+                    <div class="ui-col ui-col-2 msghead">行业</div>
+                    <div class="ui-col ui-col-7">
+                        <span v-text="user.trade"></span>
+                        <i class="ui-icon-arrow i4"></i>
+                    </div>
+                </div>
+            </a>
+            <a href="modifyMobile.html">
+                <div class="ui-row-flex ui-whitespace messageline" style="margin-top:0;">
+                    <div class="ui-col ui-col-2 msghead">手机号</div>
+                    <div class="ui-col ui-col-7">
+                        <span v-text="user.mobile"></span>
+                        <i class="ui-icon-arrow i5"></i>
+                    </div>
+                </div>
+            </a>
+            <a href="myAuth.html">
+                <div class="ui-row-flex ui-whitespace messageline">
+                    <div class="ui-col ui-col-2 msghead">我的认证</div>
+                    <div class="ui-col ui-col-7">
+                        <span v-text="idCardCheck"></span>
+                        <i class="ui-icon-arrow i6"></i>
+                    </div>
+                </div>
+            </a>
+            <a @click="go2LevelPage">
+                <div class="ui-row-flex ui-whitespace messageline">
+                    <div class="ui-col ui-col-2 msghead">等级</div>
+                    <div class="ui-col ui-col-7">
+                        <span class="level" v-text="'LV.' + user.level"></span>
+                        <i class="ui-icon-arrow i7"></i>
+                    </div>
+                </div>
+            </a>
+            <a @click="go2CreditPage">
+                <div class="ui-row-flex ui-whitespace messageline" style="margin-top:0;">
+                    <div class="ui-col ui-col-1 msghead">积分</div>
+                    <div class="ui-col ui-col-7">
+                        <span class="point" v-text="user.credit"></span>
+                        <i class="ui-icon-arrow i8"></i>
+                    </div>
+                </div>
+            </a>
+            <a>
+                <div class="ui-row-flex ui-whitespace messageline" style="margin-top:0;">
+                    <div class="ui-col ui-col-2 msghead">评分</div>
+                    <div class="ui-col ui-col-7">
+                        <div class="v-star-cell">
+                            <my-rate :value="user.score" disabled></my-rate>
+                        </div>
+                        <span class="point" style="font-size: 0.15rem;" v-text="user.score"></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script type="text/template" id="myRate">
+        <div class="vux-rater">
+            <a class="vux-rater-box" v-for="i in max" @click="handleClick(i)" :class="{'is-active':value > i}" :style="{color: colors && colors[i] ? colors[i] : '#ccc',marginRight:margin+'px',fontSize: fontSize + 'px', width: fontSize + 'px', height: fontSize + 'px', lineHeight: fontSize + 'px'}">
+                <span class="vux-rater-inner">
+			    {{star}}
+			    <span class="vux-rater-outer"
+			    :style="{color: activeColor, width: cutPercent + '%'}"
+			    v-if="cutPercent > 0 && cutIndex === i">
+			    {{star}}
+		 	    </span>
+                </span>
+            </a>
+        </div>
+    </script>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            defaultImg: 'img/user_header.png',
+            preUrl: 'http://www.renrenshangjin.com/',
+            loadingImg: 'img/img_loading.gif',
+            smImg: '%23S%23.'
+        };
+
+        var wb;
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#vPersonalInfo',
+
+                data: function() {
+                    return {
+                        user: {
+                            username: '',
+                            sex: '',
+                            trade: '',
+                            mobile: '',
+                            level: 0,
+                            credit: 0,
+                            url: '',
+                            score: 5
+                        },
+                        golds: [false, false, false, false, false],
+                        imgSrc: vmData.defaultImg,
+                        loadingImg: vmData.loadingImg,
+                        smImg: vmData.smImg,
+                        idCardCheck: '',
+                        preUrl: vmData.preUrl,
+                        hasUploaded: true
+                    }
+                },
+
+                created: function() {
+                    this.loadUserInfo();
+                },
+
+                methods: {
+                    /**
+                     * 页面加载时获取用户个人信息
+                     * @return
+                     */
+                    loadUserInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=getUserInfoTable',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.user = data.userInfo;
+
+                                if (self.user.url != null && self.user.url != '') {
+                                    self.user.url = self.user.url.replace('\.', self.smImg);
+                                    self.imgSrc = self.preUrl + self.user.url;
+                                }
+
+                                if (self.user.trade == null || self.user.trade == false) {
+                                    self.user.trade = '';
+                                }
+
+                                self.idCardCheck = (data.idCardCheck == 2) ? '已认证' : '未认证';
+
+                                self.user.level != false ? self.user.level = self.user.level : self.user.level = 0;
+
+                                self.user.score = parseFloat(parseFloat(self.user.score).toFixed(1))
+
+                                self.keepCurrentData();
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 修改用户头像
+                     * @return
+                     */
+                    changeUserImg: function() {
+                        var self = this;
+                        self.imgSrc = self.loadingImg;
+                        self.hasUploaded = false;
+
+                        wb.FileUpload(function(data) {
+                            if (data.status == 1 &&
+                                data.image.image_id !== null && data.image.image_id !== '' &&
+                                data.image.url !== null && data.image.url !== '') {
+                                var newImgId = data.image.image_id;
+                                data.image.url = data.image.url.replace('\.', self.smImg);
+                                self.imgSrc = self.preUrl + data.image.url;
+
+                                var params = {
+                                    url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=postUserImageChange',
+                                    ZYRJM: window.webEvn.token,
+                                    image_id: newImgId
+                                };
+
+                                wb.Ajax(params, function(data) {
+                                    if (data.status == 1) {
+                                        wb.showTip('修改头像成功');
+                                    } else {
+                                        self.imgSrc = self.preUrl + self.user.url;
+                                        wb.showTip(data.info);
+                                    }
+
+                                    self.hasUploaded = true;
+                                });
+                            } else if (data.status == 2) {
+                                self.imgSrc = self.preUrl + self.user.url;
+                                self.hasUploaded = true;
+                            }
+                        }, wb.uploadFlagHead);
+                    },
+
+                    /**
+                     * 查看头像大图
+                     * @return
+                     */
+                    showBigImage: function() {
+                        var param = {};
+                        param.remoteUrl = (this.user.url.indexOf(this.smImg) != -1) ?
+                            this.preUrl + this.user.url.replace(this.smImg, '\.') : vmData.defaultImg;
+
+                        wb.ImageShow(param);
+                    },
+
+                    /**
+                     * 加载上一级页面数据
+                     * @return
+                     */
+                    loadPreviousData: function() {
+                        return wb.getData();
+                    },
+
+                    /**
+                     * 保存当前页面的指定数据给下一个页面
+                     * @return
+                     */
+                    keepCurrentData: function() {
+                        var data = this.loadPreviousData();
+                        if (data == null) {
+                            data = {};
+                        }
+
+                        data.userInfoData_username = this.user.username;
+                        data.userInfoData_mobile = this.user.mobile;
+                        data.userInfoData_trade = this.user.trade;
+
+                        wb.setData(data);
+                    },
+
+                    go2LevelPage: function() {
+                        var data = wb.getData();
+
+                        data.levelFromUser = true;
+                        wb.setData(data, function() {
+                            window.location.href = 'levelInfo.html';
+                        });
+                    },
+
+                    go2CreditPage: function() {
+                        var data = wb.getData();
+
+                        data.creditFromUser = true;
+                        wb.setData(data, function() {
+                            window.location.href = 'creditInfo.html';
+                        });
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        if (this.hasUploaded == false) {
+                            wb.showTip('图片正在上传中...');
+                        } else {
+                            wb.Finish();
+                            wb.Mune();
+                        }
+                    }
+                },
+
+                components: {
+                    myRate: {
+                        template: '#myRate',
+
+                        ready: function() {
+                            this.updateStyle()
+                        },
+
+                        props: {
+                            max: {
+                                type: Number,
+                                default: 5
+                            },
+                            value: {
+                                type: Number,
+                                default: 0
+                            },
+                            disabled: Boolean,
+                            star: {
+                                type: String,
+                                default: '★'
+                            },
+                            activeColor: {
+                                type: String,
+                                default: '#fc6'
+                            },
+                            margin: {
+                                type: Number,
+                                default: 2
+                            },
+                            fontSize: {
+                                type: Number,
+                                default: 25
+                            }
+                        },
+                        computed: {
+                            sliceValue: function() {
+                                const _val = this.value.toString().split('.')
+                                return _val.length === 1 ? [_val[0], 0] : _val
+                            },
+                            cutIndex: function() {
+                                return this.sliceValue[0] * 1
+                            },
+                            cutPercent: function() {
+                                return this.sliceValue[1] * 10
+                            }
+                        },
+                        methods: {
+                            handleClick: function(i, force) {
+                                if (!this.disabled || force) {
+                                    if (this.value === i + 1) {
+                                        this.value = i
+                                        this.updateStyle()
+                                    } else {
+                                        this.value = i + 1
+                                    }
+                                }
+                            },
+                            updateStyle: function() {
+                                for (var j = 0; j < this.max; j++) {
+                                    if (j <= this.value - 1) {
+                                        this.colors.$set(j, this.activeColor)
+                                    } else {
+                                        this.colors.$set(j, '#ccc')
+                                    }
+                                }
+                            }
+                        },
+                        data: function() {
+                            return {
+                                colors: [],
+                                cutIndex: -1,
+                                cutPercent: 0
+                            }
+                        },
+                        watch: {
+                            value: function(val) {
+                                this.updateStyle()
+                            }
+                        }
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

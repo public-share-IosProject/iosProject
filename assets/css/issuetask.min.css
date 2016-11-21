@@ -1,0 +1,206 @@
+.ui-form-item label:not(.ui-switch):not(.ui-checkbox):not(.ui-checkbox-s):not(.ui-radio) {
+    width: 20px;
+    height: 20px;
+    padding: 10px 0px;
+    color: #FC651F;
+    font-size: 1em;
+    vertical-align: top;
+    line-height: 30px
+}
+
+.label-i {
+    width: 40px;
+}
+
+.line label:not(.ui-switch):not(.ui-checkbox):not(.ui-checkbox-s):not(.ui-radio) {
+    width: 20px;
+    height: 20px;
+    padding: 10px 0px;
+    color: #FC651F;
+    font-size: 1em;
+    line-height: 40px;
+    font-weight: 200;
+}
+
+.ui-form-item input, .ui-form-item textarea {
+    padding-left: 25px;
+    font-size: 13px;
+    color: #282828;
+}
+
+.ui-form-item-textarea textarea {
+    margin-top: 15px;
+    font-size: 13px;
+    height: 130px;
+}
+
+.white {
+    background: white;
+}
+
+.white img {
+    width: 40px;
+    height: 40px;
+}
+
+.img-upload {
+    margin-right: 10px;
+}
+
+.v-img-cell {
+    height: 40px;
+    display: inline-block;
+}
+
+.close-cell {
+    position: relative;
+    top: -30px;
+    left: -23px;
+    display: inline-block;
+}
+
+.v-icon-close {
+    color: rgba(0, 0, 0, 0.65);
+    width: 10px;
+    z-index: 1;
+}
+
+.photo {
+    height: 60px;
+    padding: 10px 0;
+}
+
+.line {
+    height: 45px;
+    padding: 5px 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.inputmoney {
+    width: 300px;
+}
+
+.line .lineblock {
+    padding: 7px 5px;
+    height: 45px;
+    font-size: 14px;
+}
+
+.lineblock input {
+    width: 1.3rem;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    border: 0;
+    background: none;
+    font-size: 14px;
+}
+
+.lineblock span {
+    color: #c0c0c0;
+}
+
+.money_recharge {
+    /*width: 120px;*/
+    height: 23px;
+    display: -webkit-box;
+    float: right;
+}
+
+.money_recharge .money {
+    /*width: 60px;*/
+    height: 23px;
+    border: 1px solid #666666;
+    border-radius: 7px 0 0 7px;
+    color: #666666;
+    text-align: center;
+}
+
+.ui-col .authority_select select {
+    width: 100px;
+}
+
+.money_recharge .recharge {
+    width: 60px;
+    height: 23px;
+    border: 1px solid #666666;
+    border-radius: 0 7px 7px 0;
+    color: white;
+    background-color: #666666;
+    text-align: center;
+}
+
+.time_select {
+    padding-top: 3px;
+    font-size: 13px;
+}
+
+.authority_select select, .time_select select {
+    color: #c0c0c0;
+}
+
+.ui-col .time {
+    width: 20px;
+    display: block;
+    color: #FC651F;
+    margin-left: 8px;
+}
+
+.selectbox {
+    display: -webkit-box;
+}
+
+.statement {
+    margin: 0 0;
+    background-color: #e0e0e0;
+    padding-top: 30px;
+}
+
+.ui-border-t {
+    border: none;
+}
+
+.z-input-textarea {
+    min-height: : 150px;
+    height: auto;
+    background-color: #f6f9fe;
+}
+
+.z-button {
+    border-color: #ec7826;
+    background-color: #ec7826;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.5, #ec7826), to(#ec7826));
+}
+
+.z-icon-task-img {
+    width: 30px;
+    height: 25px;
+    margin-top: 5px;
+    margin-left: -7px;
+}
+
+.z-img-recharge {
+    width: 55px;
+}
+
+.z-money {
+    color: #fdb937;
+}
+
+.z-input-tasktime {
+    width: 0.7rem !important;
+}
+
+.z-span-tasktime-left{
+    color: black !important;
+}
+.z-span-tasktime-right{
+    color: #fdb937 !important;
+}
+.z-img-dot{
+    margin-left: 8px;
+    margin-top: -2px;
+}
+.z-img-upload{
+    width: 45px !important;
+    height: 40px !important;
+}

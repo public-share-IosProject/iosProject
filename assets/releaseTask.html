@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>发布任务</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/issuetask.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+    <script>
+        document.addEventListener('readystatechange', function(e) {
+            if (document.readyState === "complete") {
+                var width = document.body.offsetWidth;
+                document.body.style.fontSize = width * 0.0426 + "px";
+            }
+        }, false);
+    </script>
+</head>
+
+<body style="background-color:#e0e0e0;" id="vReleaseTask">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers" style="background-color: #ec7826;">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>发布任务</h1>
+        </header>
+        <div class="ui-form ui-border-t">
+            <div class="ui-form-item ui-border-b">
+                <label><i class="fa fa-bookmark-o" style="font-size: 1.2em;padding-top:3px;"></i></label>
+                <input name="" type="text" placeholder="填写您的标题部分内容(15字以内)" id="titleInput" v-model="taskInfo.title" onpaste="return false;">
+                <a href="#" class="ui-icon-close" @click="trashInput"></a>
+            </div>
+            <div class="ui-form-item ui-form-item-textarea z-input-textarea">
+                <label><i class="fa fa-list-ul"></i></label>
+                <textarea name="" placeholder="描述您的任务详情，如任务内容/关键步骤/任务地址" v-model="taskInfo.detail"></textarea>
+            </div>
+        </div>
+        <div class="ui-row-col ui-whitespace white">
+            <img src="img/release/add-photo.png" class="z-img-upload" @click="imgUpload" />
+            <div class="v-img-cell" v-if="imgs.length > 0" v-for="img in imgs" track-by="$index" v-cloak>
+                <img :src="img.url" />
+                <div class="close-cell">
+                    <i class="ui-icon-close v-icon-close" @click="removeImg($index)" v-if="img.isFinished"></i>
+                </div>
+            </div>
+        </div>
+        <div class="ui-form ui-border-t ui-border-b" style="margin-top: 1px;">
+            <div class="ui-row-flex ui-whitespace line">
+                <label><img src="img/release/shang.png" class="z-icon-task-img"></label>
+                <div class="ui-col ui-col-4 lineblock">
+                    <input name="" onfocus="this.type='number';" placeholder="请输入您的赏金" v-model="taskInfo.reward">
+                </div>
+                <div class="ui-col ui-col-6 lineblock">
+                    <div class="money_recharge">
+                        <div class="z-money" v-text="money | currency '￥'"></div>
+                        <img src="img/release/recharge.png" class="z-img-recharge" @click="go2recharge">
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row-flex ui-whitespace line">
+                <label><img src="img/release/tasktime.png" class="z-icon-task-img"></label>
+                <div class="ui-col ui-col-2 lineblock selectbox">
+                    <span class="z-span-tasktime-left">任务截止时间</span>
+                </div>
+                <div class="ui-col ui-col-4 lineblock selectbox">
+                    <input onfocus="this.type='number';" placeholder="0" class="z-input-tasktime" v-model="taskInfo.hour"><span class="z-span-tasktime-right">时</span>
+                    <input onfocus="this.type='number';" placeholder="0" class="z-input-tasktime" v-model="taskInfo.minute"><span class="z-span-tasktime-right">分</span>
+                </div>
+            </div>
+            <div class="ui-row-flex ui-whitespace line">
+                <label><img src="img/release/tasktype.png" class="z-icon-task-img"></label>
+                <div class="ui-col ui-col-3 lineblock">
+                    <div class="ui-select authority_select">
+                        <select style="width:100%" v-model="taskInfo.type" id="typeSelect">
+                            <option id="selectWord" value="" selected hidden disabled>请选择本任务的可见范围</option>
+                            <option value="1">所有人可见</option>
+                            <option value="2">好友可见</option>
+                            <option value="3">陌生人可见</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row-flex ui-whitespace line">
+                <label><i class="fa fa-location-arrow" style="font-size: 0.18rem;color:#fdb937;"></i></label>
+                <div class="ui-col lineblock" style="margin-left: 8px;">
+                    <input placeholder="任务发布地址" v-model="taskInfo.address" style="width: 100%;">
+                </div>
+            </div>
+            <section class="ui-panel ui-panel-pure ui-border-t statement">
+                <div class="ui-row-flex">
+                    <div class="ui-col"><img src="img/release/dot.png" class="z-img-dot"></div>
+                    <div class="ui-col ui-col-9">任务发布后在本平台显示的时间和任务被领取后解决的截止时间一样</div>
+                </div>
+                <div class="ui-row-flex" style="margin-top: 1px;">
+                    <div class="ui-col"><img src="img/release/dot.png" class="z-img-dot"></div>
+                    <div class="ui-col ui-col-9">发布任务时，赏金将由平台托管</div>
+                </div>
+            </section>
+            <div class="ui-btn-wrap" style="background:#e0e0e0;">
+                <button class="ui-btn-lg ui-btn-danger z-button" type="submit" @click="submit">发布此任务</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            preUrl: 'http://www.renrenshangjin.com/',
+            loadingImg: 'img/img_loading.gif',
+            smImg: '%23S%23.',
+        };
+        var wb;
+        var load = function() {
+            var vm = new Vue({
+                el: '#vReleaseTask',
+
+                data: function() {
+                    return {
+                        taskInfo: {
+                            title: '',
+                            detail: '',
+                            image_id: [],
+                            hour: '',
+                            minute: '',
+                            type: null,
+                            reward: '',
+                            address: ''
+                        },
+                        money: 0,
+                        imgs: [],
+                        deleteImgs: [],
+                        preUrl: vmData.preUrl,
+                        loadingImg: vmData.loadingImg,
+                        smImg: vmData.smImg
+                    }
+                },
+
+                created: function() {
+                    this.loadMoneyInfo();
+                    this.loadLocationInfo();
+                    this.loadBackFromRechargeData();
+                },
+
+                methods: {
+                    /**
+                     * 获取用户地理信息
+                     * @return {[type]} [description]
+                     */
+                    loadLocationInfo: function() {
+                        var self = this;
+                        wb.Location(function(data) {
+                            if (data != null && data.id != -2) {
+                                self.taskInfo.city_id = data.id;
+                                self.taskInfo.latitude = data.latitude;
+                                self.taskInfo.longitude = data.lontitude;
+                                self.taskInfo.precision = data.radius;
+                                self.taskInfo.address = data.addr;
+                            } else {
+                                self.taskInfo.city_id = 44
+                                self.taskInfo.latitude = -2
+                                self.taskInfo.longitude = -2
+                                self.taskInfo.precision = 1
+                                self.taskInfo.address = '福州市'
+                            }
+                        })
+                    },
+
+                    /**
+                     * 加载用户余额信息
+                     * @return
+                     */
+                    loadMoneyInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserWallet&a=getUserMoney',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.money = (data.money.money != null) ? data.money.money : 0;
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 上传任务描述图片
+                     * @return
+                     */
+                    imgUpload: function() {
+                        var self = this;
+
+                        if (self.imgs.length > 4) {
+                            wb.showTip('上传图片数不能超过5张');
+                            return;
+                        }
+
+                        var img = {
+                            url: self.loadingImg,
+                            isFinished: false
+                        };
+
+                        self.imgs.push(img);
+
+                        var _thisImg = self.imgs[self.imgs.length - 1];
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postTaskImage',
+                            ZYRJM: window.webEvn.token,
+                            image: 'file'
+                        };
+
+                        wb.FileUpload(function(data) {
+                            if (data.status == 1) {
+                                data.image.url = data.image.url.replace(/\./, self.smImg);
+
+                                _thisImg.url = self.preUrl + data.image.url;
+                                _thisImg.image_id = data.image.image_id;
+                                _thisImg.isFinished = true;
+
+                                self.taskInfo.image_id.push(data.image.image_id);
+                            } else if (data.status == 2) {
+                                var index = self.imgs.indexOf(_thisImg);
+                                self.imgs.splice(index, 1);
+                            } else if (data.status == 0) {
+                                var index = self.imgs.indexOf(_thisImg);
+                                self.imgs.splice(index, 1);
+                                wb.showTip(data.info);
+                            }
+                        }, wb.uploadFlagTask);
+                    },
+
+                    /**
+                     * 删除已上传的图片
+                     * @param  {number} index - 数组下标
+                     * @return
+                     */
+                    removeImg: function(index) {
+                        var self = this;
+
+                        wb.Alert('提示', '是否要删除图片', function(data) {
+                            if (data.status == 1) {
+                                self.deleteImgs.push(self.imgs[index].image_id);
+                                self.imgs.splice(index, 1);
+                                self.taskInfo.image_id.splice(index, 1);
+                                wb.showTip('删除成功');
+                            }
+                        });
+                    },
+
+                    /**
+                     * 删除取消上传的图片数组
+                     * @return
+                     */
+                    deleteImageId: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postTaskImageDelete',
+                            ZYRJM: window.webEvn.token,
+                            image_id: self.deleteImgs
+                        };
+
+                        wb.Ajax(params, function(data) {});
+                    },
+
+                    /**
+                     * 获取字符串的字节长度
+                     * @return 字符串的字节长度
+                     */
+                    getBytesLength: function(str) {
+                        return str.replace(/[^\x00-\xff]/gi, "--").length;
+                    },
+
+                    /**
+                     * 提交发布任务请求
+                     * @return
+                     */
+                    submit: function() {
+                        var self = this;
+                        if (self.checkInput()) {
+                            var params = {};
+                            params = self.taskInfo;
+                            params.url = 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postReleaseTask';
+                            params.ZYRJM = window.webEvn.token;
+
+                            wb.Ajax(params, function(data) {
+                                if (data.status == 1) {
+                                    if (self.deleteImgs !== null && self.deleteImgs.length !== 0) {
+                                        self.deleteImageId();
+                                    }
+                                    wb.showTip('发布成功');
+                                    self.close();
+                                } else {
+                                    wb.showTip(data.info);
+                                }
+                            });
+                        }
+                    },
+
+                    /**
+                     * 校验输入内容的合法性
+                     * @return
+                     */
+                    checkInput: function() {
+                        if (this.taskInfo.title == '') {
+                            wb.showTip('请输入任务标题!');
+                            return false;
+                        }
+
+                        if (this.getBytesLength(this.taskInfo.title) > 30) {
+                            wb.showTip('标题太长啦');
+                            return false;
+                        }
+
+                        if (!(/^([+-]?)\d*\.?\d+$/.test(this.taskInfo.reward)) || this.taskInfo.reward <= 0) {
+                            wb.showTip('请输入正确的赏金数');
+                            return false;
+                        }
+
+                        if ((this.taskInfo.hour == '' || this.taskInfo.hour == null) && (this.taskInfo.minute == '' || this.taskInfo.minute == null)) {
+                            wb.showTip('请输入任务截止时间');
+                            return false;
+                        }
+
+                        if (this.taskInfo.hour == '' || this.taskInfo.hour == 0) {
+                            if (!(/^([+-]?)\d*\.?\d+$/.test(this.taskInfo.minute)) || this.taskInfo.minute <= 0) {
+                                wb.showTip('请输入正确的任务截止分钟数');
+                                return false;
+                            }
+                        }
+
+                        if (this.taskInfo.minute == '' || this.taskInfo.minute == 0) {
+                            if (!(/^([+-]?)\d*\.?\d+$/.test(this.taskInfo.hour)) || this.taskInfo.hour <= 0) {
+                                wb.showTip('请输入正确的任务截止小时数');
+                                return false;
+                            }
+                        }
+
+                        var hour = parseInt(this.taskInfo.hour);
+                        var minute = parseInt(this.taskInfo.minute);
+                        if (isNaN(hour)) {
+                            hour = 0;
+                        }
+                        if (isNaN(minute)) {
+                            minute = 0;
+                        }
+
+                        var time = hour * 60 + minute;
+                        if (time >= 1440) {
+                            wb.showTip('任务时间不能超过24小时,可由任务领取用户申请延长');
+                            return false;
+                        }
+
+                        var _type = parseInt(this.taskInfo.type);
+                        if (!((_type == 1) || (_type == 2) || (_type == 3))) {
+                            wb.showTip('请选择任务可见范围');
+                            return false;
+                        }
+
+                        if (this.taskInfo.city_id == -2) {
+                          wb.showTip('获取当前位置失败,请检查是否已开启手机定位权限');
+                          return false;
+                        }
+                        return true;
+                    },
+
+                    /**
+                     * 清空用户输入
+                     * @return
+                     */
+                    trashInput: function() {
+                        this.taskInfo.title = '';
+                        $('#titleInput').focus();
+                    },
+
+                    /**
+                     * 跳转至充值页面
+                     * @return
+                     */
+                    go2recharge: function() {
+                        this.keepTaskInfo();
+                    },
+
+                    /**
+                     * 保存当前页面数据，跳转到充值页面之后用来回填
+                     * @return
+                     */
+                    keepTaskInfo: function() {
+                        var self = this;
+
+                        self.imgs.forEach(function(img) {
+                            if (img.isFinished == false) {
+                                wb.showTip('图片正在上传中...');
+                                return;
+                            }
+                        });
+
+                        var images = self.imgs
+                        images.forEach(function(img) {
+                            img.url = img.url.replace(self.smImg, '.')
+                        })
+
+                        var data = {
+                            releaseTask_taskInfo: self.taskInfo,
+                            releaseTask_imgs: images
+                        };
+
+                        wb.setData(data, function() {
+                            window.location.href = 'recharge.html';
+                        });
+                    },
+
+                    /**
+                     * 加载并回填去充值页面之前的数据
+                     * @return
+                     */
+                    loadBackFromRechargeData: function() {
+                        var self = this;
+                        var data = wb.getData();
+
+                        if (data !== undefined || data !== null) {
+                            if (data.releaseTask_imgs !== undefined &&
+                                data.releaseTask_imgs !== null &&
+                                data.releaseTask_imgs.length !== 0) {
+                                data.releaseTask_imgs.forEach(function(img){
+                                    img.url = img.url.replace(/\.jpg/, self.smImg) + 'jpg'
+                                })
+                                self.imgs = data.releaseTask_imgs;
+                            }
+
+                            if (data.releaseTask_taskInfo != null) {
+                                self.taskInfo = data.releaseTask_taskInfo;
+                            }
+                        }
+                    },
+
+                    /**
+                     * 关闭当前页面并清除当前保存数据
+                     * @return
+                     */
+                    close: function() {
+                        var data = wb.getData();
+
+                        if (data !== undefined && data != null) {
+                            if (data.releaseTask_imgs !== undefined && data.releaseTask_imgs !== null) {
+                                data.releaseTask_imgs = null;
+                            }
+
+                            if (data.releaseTask_taskInfo !== undefined && data.releaseTask_taskInfo != null) {
+                                data.releaseTask_taskInfo = null;
+                            }
+                        }
+
+                        wb.setData(data);
+                        wb.Finish();
+                    }
+                }
+            });
+
+            String.prototype.strLen = function() {
+                var len = 0;
+                for (var i = 0; i < this.length; i++) {
+                    if (this.charCodeAt(i) > 255 || this.charCodeAt(i) < 0) len += 2;
+                    else len++;
+                }
+                return len;
+            }
+
+            //将字符串拆成字符，并存到数组中
+            String.prototype.strToChars = function() {
+                    var chars = new Array();
+                    for (var i = 0; i < this.length; i++) {
+                        chars[i] = [this.substr(i, 1), this.isCHS(i)];
+                    }
+                    String.prototype.charsArray = chars;
+                    return chars;
+                }
+                //判断某个字符是否是汉字
+
+            String.prototype.isCHS = function(i) {
+                    if (this.charCodeAt(i) > 255 || this.charCodeAt(i) < 0)
+                        return true;
+                    else
+                        return false;
+                }
+                //截取字符串（从start字节到end字节）
+            String.prototype.subCHString = function(start, end) {
+                    var len = 0;
+                    var str = "";
+                    this.strToChars();
+                    for (var i = 0; i < this.length; i++) {
+                        if (this.charsArray[i][1])
+                            len += 2;
+                        else
+                            len++;
+                        if (end < len)
+                            return str;
+                        else if (start < len)
+                            str += this.charsArray[i][0];
+                    }
+                    return str;
+                }
+                //截取字符串（从start字节截取length个字节）
+            String.prototype.subCHStr = function(start, length) {
+                return this.subCHString(start, start + length);
+            }
+
+            $('#titleInput').bind('input propertychange', function() {
+                if (vm.getBytesLength(vm.taskInfo.title) > 30) {
+                    var str = vm.taskInfo.title.substring(0, 30);
+                    vm.$set('taskInfo.title', vm.taskInfo.title.subCHStr(0, 30));
+                }
+            })
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

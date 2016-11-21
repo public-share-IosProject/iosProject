@@ -1,0 +1,115 @@
+.card {
+    width: 100%;
+    height: 100px;
+    text-align: center;
+    background-color: white;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.card .imgs {
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.cardword {
+    text-align: center;
+    height: 20px;
+    background: white;
+    color: #c0c0c0;
+    font-size: 12px;
+    line-height: 20px;
+    margin-top: 15px;
+}
+
+.cardword .number {
+    color: #FC3768;
+}
+
+.ui-form-item label {
+    color: #191919;
+    width: 70px;
+}
+
+.ui-form-item label:not(.ui-switch):not(.ui-checkbox):not(.ui-checkbox-s):not(.ui-radio) {
+    width: 70px;
+}
+
+
+}
+.line {
+    height: 45px;
+    padding: 5px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+.ui-form-item input {
+    padding-left: 75px;
+}
+.inputmoney {
+    width: 300px;
+}
+.line .lineblock {
+    padding: 10px 5px;
+    height: 45px;
+}
+.line .add_minus {
+    text-align: right;
+}
+.lineblock input {
+    width: 210px;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    border: 0;
+    background: none;
+}
+.line .pay {
+    text-align: right;
+    padding: 0 0 0 0;
+}
+.pay .buttons {
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    display: inline-block;
+    color: black;
+}
+.pay .red {
+    color: white;
+    background-color: #FC3768;
+}
+.card-img {
+    height: 80px;
+}
+.img-sm {
+    width: 40px;
+    height: 40px;
+}
+.img-lg {
+    width: 185px;
+    height: 90px;
+}
+.img-div-sm {
+    display: inline-block;
+    margin-top: 25px;
+}
+.waiting-auth-wrap {
+    width: 100%;
+    margin-top: 100px;
+    text-align: center;
+}
+.img-wrap img {
+    width: 200px;
+    height: 200px;
+}
+.waiting-auth-title {
+    font-size: 0.15rem;
+    color: black;
+}
+.btn-disabled {
+    background-color: rgb(208, 208, 208) !important;
+    border-color: rgb(208, 208, 208) !important;
+    color: rgb(237, 237, 237) !important;
+}

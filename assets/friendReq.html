@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>消息详情</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/demandDetail.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body style="background:#FFF;" id="app">
+    <div class="pages" style="background:#FFF;">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>消息详情</h1>
+        </header>
+        <div class="ui-row-flex ui-whitespace demand_message" style="margin-top: 0.3rem;">
+            <div class="ui-col ui-col-3" style="text-align:center;">
+                <i class="fa fa-clock-o"></i>
+                <span v-text="msg.time"></span>
+            </div>
+        </div>
+        <div class="demand_block">
+            <div class="demandsdetail">
+                <div class="demandsmsg" style="min-height: 3rem;">
+                    <div class="msg_details word-break" v-text="msg.detail"></div>
+                </div>
+            </div>
+        </div>
+        <div class="detail_man" v-if="hasUserInfo">
+            <div class="demand_man_block">
+                <img class="demand_headpic" :src="reqUserInfo.url" />
+                <span class="msges" v-text="reqUserInfo.username"></span>
+                <span class="msges" v-text="reqUserInfo.sex"></span>
+                <span class="level" v-text="reqUserInfo.level"></span>
+            </div>
+        </div>
+    </div>
+    <footer class="ui-footer ui-footer-stable ui-border-t demand_foot">
+        <div class="ui-row-flex ui-whitespace" style="padding:0;font-size:0.16rem;">
+            <div class="ui-col ui-col">
+                <button class="btn-demanddetail-3" @click="agree">同意</button>
+            </div>
+            <div class="ui-col ui-col demand_borderleft">
+                <button class="btn-demanddetail-3" @click="disagree">拒绝</button>
+            </div>
+        </div>
+    </footer>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+        var vmData = {
+            defaultImg: 'img/user_header.png',
+            quota: '&#039;',
+            quotaRex: /&#039;/g
+        };
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        msg: {},
+                        reqUserInfo: null,
+                        hasUserInfo: false
+                    }
+                },
+
+                created: function() {
+                    this.loadData();
+                },
+
+                methods: {
+
+                    loadData: function() {
+                        var self = this;
+                        var data = wb.getData();
+
+                        if (data.userMsgData !== undefined && data.userMsgData !== null) {
+                            self.msg = data.userMsgData;
+
+                            var date = new Date(self.msg.created_at * 1000);
+
+                            var minutes = parseInt(date.getMinutes());
+                            if (minutes === 0) {
+                                minutes = '00';
+                            } else if (minutes < 10) {
+                                minutes = '0' + minutes;
+                            }
+
+                            var time = date.getFullYear() + '.' + (date.getMonth() + 1) + '.' + (date.getDate()) + ' ' + date.getHours() + ':' + minutes;
+                            self.msg.time = time;
+
+                            if (self.msg.detail.indexOf(vmData.quota) != -1) {
+                                self.msg.detail = self.msg.detail.replace(vmData.quotaRex, '\'');
+                            }
+
+                            if (self.msg.sender_id !== null) {
+                                self.loadReqUserInfo();
+                            }
+                        } else {
+                            wb.showTip('页面已过期');
+                            self.close();
+                        }
+                    },
+
+                    loadReqUserInfo: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=getOtherFriendInfor',
+                            ZYRJM: window.webEvn.token,
+                            friend_id: self.msg.sender_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.reqUserInfo = data.friendInfor;
+                                self.hasUserInfo = (self.reqUserInfo != null) ? true : false;
+
+                                if (self.reqUserInfo !== null) {
+                                    self.hasUserInfo = true;
+
+                                    if (self.reqUserInfo.url == null || self.reqUserInfo.url == '') {
+                                        self.reqUserInfo.url == vmData.defaultImg;
+                                    }
+                                }
+
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+
+                    },
+
+                    agree: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserRelation&a=postAcceptFriend',
+                            ZYRJM: window.webEvn.token,
+                            receiver_id: self.msg.sender_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.close();
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+
+                    disagree: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserRelation&a=postRefuseFriend',
+                            ZYRJM: window.webEvn.token,
+                            receiver_id: self.msg.sender_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.close();
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+
+                    clearMsgData: function(callback) {
+                        var data = wb.getData();
+                        data.userMsgData = null;
+                        wb.setData(data, callback);
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        this.clearMsgData(function() {
+                            wb.Finish();
+                        });
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

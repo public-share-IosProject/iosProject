@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>充值</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/recharge.min.css">
+</head>
+
+<body id="vCharge">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>充值</h1>
+        </header>
+        <div class="ui-form border-t" style="margin-top:10px;">
+            <div class="ui-form-item ui-form-item-show border-b">
+                <span>账号余额</span>
+                <span v-text="restMoney | currency '￥'" style="color:#FC3768;margin-left: 20px"></span>
+            </div>
+            <div class="ui-form-item ui-form-item-show border-b">
+                <label>充值金额 &nbsp;&nbsp;</label>
+                <input type="number" placeholder="请输入金额" id="moneyInput" v-model="chargeMoney">
+                <a href="#" class="ui-icon-close" @click="trashInput"></a>
+            </div>
+        </div>
+        <div class="messageblock">请选择充值方式</div>
+        <div class="ui-form ui-border-t" id="rechargeWay">
+            <!--
+            <div class="ui-form-item ui-form-item-radio border-b" value="wx" @click="labelSelect('wx')">
+                <img src="img/wechat.png" style="margin-top:10px;" width="25px" height="25px" />
+                <label class="ui-radio choose" for="wx">
+                    <input type="radio" name="radio" id="wx" value="wx" v-model="chargeWay">
+                </label>
+                <p style="margin-left: 35px">微信支付</p>
+            </div>
+            -->
+            <div class="ui-form-item ui-form-item-radio border-b" @click="labelSelect('zfb')">
+                <img src="img/alipay.jpg" style="margin-top:10px;" width="25px" height="25px" />
+                <label class="ui-radio choose" for="zfb">
+                    <input type="radio" name="radio" id="zfb" value="zfb" v-model="chargeWay">
+                </label>
+                <p style="margin-left: 35px">支付宝支付</p>
+            </div>
+            <!--
+            <div class="ui-form-item ui-form-item-radio border-b" style="padding-left:10px;" value="yl" @click="labelSelect('yl')">
+                <img src="img/unionpay.png" style="margin-top: 12px;" width="35px" height="20px" />
+                <label class="ui-radio choose" for="yl">
+                    <input type="radio" name="radio" id="yl" value="yl" v-model="chargeWay">
+                </label>
+                <p style="margin-left: 30px">银联支付</p>
+            </div>
+            -->
+            <div class="ui-btn-wrap" style="background-color:#e0e0e0;padding-top:50px;">
+                <button class="ui-btn-lg ui-btn-danger" @click="submit" :disabled="submitBtnDisabled">确认充值</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+        var wb;
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#vCharge',
+
+                data: function() {
+                    return {
+                        chargeWay: 'zfb',
+                        restMoney: 0,
+                        chargeMoney: '',
+                        submitBtnDisabled: false
+                    }
+                },
+
+                created: function() {
+                    this.loadRestMoney();
+                },
+
+                methods: {
+                    /**
+                     * 页面加载时获取用户剩余金额
+                     * @return
+                     */
+                    loadRestMoney: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserWallet&a=getUserMoney',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1 && data.money != null) {
+                                data.money.money != null ? self.restMoney = data.money.money : self.restMoney = 0;
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        })
+                    },
+
+                    /**
+                     * 充值提交
+                     * @return
+                     */
+                    submit: function() {
+                        var self = this;
+
+                        if (self.chargeWay === 'wx' || self.chargeWay === 'yl'){
+                            wb.showTip('功能暂不可使用,请选择支付宝支付');
+                            return;
+                        }
+
+                        if (!self.submitBtnDisabled && self.checkInput()) {
+                            self.submitBtnDisabled = true;
+
+                            var params = {
+                                url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Pay&a=getCreateTable',
+                                ZYRJM: window.webEvn.token,
+                                money: self.chargeMoney
+                            };
+
+                            wb.Ajax(params, function(data) {
+                                if (data.status == 1) {
+                                    params = {
+                                        title: '充值',
+                                        content: '人人赏金充值',
+                                        money: self.chargeMoney,
+                                        trandno: data.number
+                                    };
+
+                                    wb.Pay(params, function(data) {
+                                        if (data.status == 1) {
+                                            wb.showTip('支付成功');
+                                            self.back();
+                                        } else {
+                                            wb.showTip(data.info);
+                                            self.submitBtnDisabled = false;
+                                        }
+                                    });
+                                } else {
+                                    wb.showTip(data.info);
+                                    self.submitBtnDisabled = false;
+                                }
+                            });
+                        } else {
+                            return;
+                        }
+                    },
+
+                    /**
+                     * 清空输入的充值金额
+                     * @return
+                     */
+                    trashInput: function() {
+                        this.chargeMoney = '';
+                        $('#moneyInput').focus();
+                    },
+
+                    /**
+                     * 支付方式选择
+                     * @param  {string} str 支付方式
+                     * @return
+                     */
+                    labelSelect: function(str) {
+                        this.chargeWay = str;
+                    },
+
+                    /**
+                     * 提交校验
+                     * @return
+                     */
+                    checkInput: function() {
+                        if (!(/^(([1-9]\d*)|0)(\.\d{1,2})?$/.test(this.chargeMoney))) {
+                            wb.showTip('请输入正确的充值金额');
+                            return false;
+                        }
+                        return true;
+                    },
+
+                    /**
+                     * 返回至上一级页面
+                     * @return
+                     */
+                    back: function() {
+                        window.history.back();
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>
