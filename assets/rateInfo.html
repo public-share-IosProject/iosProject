@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>评分信息说明</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <style>
+        .vux-rater {
+            text-align: left;
+            display: inline-block;
+            line-height: normal;
+        }
+
+        .vux-rater a {
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            color: #ccc;
+        }
+
+        .vux-rater a:last-child {
+            padding-right: 2px!important;
+            margin-right: 0px!important;
+        }
+
+        .vux-rater a:hover {
+            color: #ffdd99;
+        }
+
+        .vux-rater a.is-disabled {
+            color: #ccc !important;
+            cursor: not-allowed;
+        }
+
+        .vux-rater-box {
+            position: relative;
+        }
+
+        .vux-rater-inner {
+            position: relative;
+            display: inline-block;
+        }
+
+        .vux-rater-outer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: inline-block;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body id="app" style="background-color: #fff">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>评分信息说明</h1>
+        </header>
+        <div style="margin-top: 25px; text-align: center;">
+            <span class="v-star-cell">
+                <my-rate :value="score" disabled></my-rate>
+            </span>
+            <span v-text="score" style="color: red; font-size: 16px;"></span>
+        </div>
+
+    </div>
+
+    <template id="myRate">
+	  <div class="vux-rater">
+	    <a class="vux-rater-box"
+		v-for="i in max"
+		@click="handleClick(i)"
+		:class="{'is-active':value > i}"
+		:style="{color: colors && colors[i] ? colors[i] : '#ccc',marginRight:margin+'px',fontSize: fontSize + 'px', width: fontSize + 'px', height: fontSize + 'px', lineHeight: fontSize + 'px'}">
+	        <span class="vux-rater-inner">
+			    {{star}}
+			    <span class="vux-rater-outer"
+			    :style="{color: activeColor, width: cutPercent + '%'}"
+			    v-if="cutPercent > 0 && cutIndex === i">
+			    {{star}}
+		 	    </span>
+	  	    </span>
+	    </a>
+	  </div>
+	</template>
+
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var wb;
+
+        var rate = Vue.extend({
+            template: '#myRate',
+
+            ready: function() {
+                this.updateStyle()
+            },
+
+            props: {
+                max: {
+                    type: Number,
+                    default: 5
+                },
+                value: {
+                    type: Number,
+                    default: 0
+                },
+                disabled: Boolean,
+                star: {
+                    type: String,
+                    default: '★'
+                },
+                activeColor: {
+                    type: String,
+                    default: '#fc6'
+                },
+                margin: {
+                    type: Number,
+                    default: 2
+                },
+                fontSize: {
+                    type: Number,
+                    default: 25
+                }
+            },
+            computed: {
+                sliceValue: function() {
+                    const _val = this.value.toString().split('.')
+                    return _val.length === 1 ? [_val[0], 0] : _val
+                },
+                cutIndex: function() {
+                    return this.sliceValue[0] * 1
+                },
+                cutPercent: function() {
+                    return this.sliceValue[1] * 10
+                }
+            },
+            methods: {
+                handleClick: function(i, force) {
+                    if (!this.disabled || force) {
+                        if (this.value === i + 1) {
+                            this.value = i
+                            this.updateStyle()
+                        } else {
+                            this.value = i + 1
+                        }
+                    }
+                },
+                updateStyle: function() {
+                    for (var j = 0; j < this.max; j++) {
+                        if (j <= this.value - 1) {
+                            this.colors.$set(j, this.activeColor)
+                        } else {
+                            this.colors.$set(j, '#ccc')
+                        }
+                    }
+                }
+            },
+            data: function() {
+                return {
+                    colors: [],
+                    cutIndex: -1,
+                    cutPercent: 0
+                }
+            },
+            watch: {
+                value: function(val) {
+                    this.updateStyle()
+                }
+            }
+        });
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        score: 5
+                    };
+                },
+
+                created: function() {
+                    this.loadUserInfo();
+                },
+
+                methods: {
+
+                    /**
+                     * 页面加载时获取用户个人信息
+                     * @return
+                     */
+                    loadUserInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=getUserInfoTable',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.score = parseInt(data.userInfo.score);
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+
+                    loadRateInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: ''
+                        };
+                    },
+
+                    /**
+                     * 返回至上一级页面
+                     * @return
+                     */
+                    back: function() {
+                        window.history.back();
+                    }
+                },
+
+                components: {
+                    'my-rate': rate
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

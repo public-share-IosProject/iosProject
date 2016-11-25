@@ -1,0 +1,152 @@
+.wallet_msgline {
+    background: #fff;
+    height: 0.8rem;
+    padding: 0.15rem 0.1rem;
+}
+
+.ui-col .account {
+    height: 0.2rem;
+    padding-left: 0.30rem;
+}
+
+.ui-col .account_money {
+    height: 0.3rem;
+    line-height: 0.3rem;
+    padding-left: 0.30rem;
+    color: #FC0D1B;
+    display: block;
+    font-size: 0.18rem;
+    font-weight: 600;
+}
+
+.wallet_btn {
+    vertical-align: top;
+    line-height: 0.3rem;
+    min-width: 0;
+    width: 0.5rem;
+    padding: 0;
+    margin-left: 0.1rem;
+    font-size: 0.12rem;
+    height: auto;
+    display: inline-block;
+}
+
+.expense_msgline {
+    height: 0.8rem;
+    background: #FFF;
+    margin-bottom: 8px;
+}
+
+.expense_msgline .expense_title {
+    height: 0.4rem;
+    display: block;
+    line-height: 0.5rem;
+    text-align: center;
+    font-size: 0.16rem;
+    color: #999999;
+}
+
+.expense_msgline .expense_money {
+    height: 0.4rem;
+    display: block;
+    text-align: center;
+    font-size: 0.16rem;
+    color: #666666;
+}
+
+.bank-list {
+    background-color: #FFF;
+    margin-bottom: 8px;
+}
+
+.bank-card-item {
+    height: 0.5rem;
+}
+
+.bank-card-item div{
+	line-height: 0.5rem;
+}
+
+.bank-card-item button{
+	margin-top: 0.12rem;
+}
+
+.bank-card-wrapper {
+    height: 0.5rem;
+    background-color: #FFF;
+    margin-bottom: 8px;
+}
+
+.bank-card-wrapper .bank-card-wrapper i, .plus-msg{
+	line-height: 0.5rem;
+}
+
+.plus-msg {
+    font-size: 0.16rem;
+}
+
+.wallet-task {
+    background: #FFF;
+    font-size: 0.12rem;
+    height: 0.75rem;
+    padding: 0 10px;
+}
+
+.wallet-task .wallet-task-left {
+    margin-top: 0.25rem;
+}
+
+.thebadge {
+    height: 0.20rem;
+    font-size: 0.12rem;
+    text-align: center;
+    color: #FFF;
+    margin-right: 0.1rem;
+    border-radius: 0.03rem;
+    background-color: #FF9900;
+}
+
+.task_name_word {
+    font-size: 0.14rem;
+    color: #666666;
+    max-width: 70%;
+    height: 0.2rem;
+}
+
+.wallet-task .wallet_task_time {
+    padding: 0.08rem 0;
+    height: 0.40rem;
+    text-align: left;
+}
+
+.task_time {
+    font-size: 0.12rem;
+    color: #d1d1d1;
+    width: 1.3rem;
+    display: inline-block;
+    margin-top: 0.05rem;
+}
+
+.task_point {
+    display: inline-block;
+    font-size: 0.12rem;
+    width: 1.3rem;
+    color: #FC0D1B;
+    margin-right: 15px;
+    margin-top: 0.25rem;
+}
+
+.ui-btn-red {
+    background-color: #f75549;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.5, #fc6156), to(#f75549));
+    color: white;
+    border-color: #f43d30;
+    background-clip: padding-box;
+}
+
+.ui-btn-red:not(.disabled):not(:disabled):active, .ui-btn-red.active {
+    background: #e2574d;
+    border-color: #e2574d;
+    color: rgba(255, 255, 255, 0.5);
+    background-clip: padding-box;
+}

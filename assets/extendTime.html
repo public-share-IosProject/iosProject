@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<title>延长任务时间</title>
+	<link rel="stylesheet" href="css/frozen.min.css">
+	<link rel="stylesheet" href="css/common.min.css">
+	<link rel="stylesheet" href="css/issuetask.min.css">
+	<link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+	<script>
+		document.addEventListener('readystatechange', function(e) {
+			if (document.readyState === "complete") {
+				var width = document.body.offsetWidth;
+				document.body.style.fontSize = width * 0.0426 + "px";
+			}
+		}, false);
+	</script>
+</head>
+
+<body style="background-color:#e0e0e0;" id="vReleaseTask">
+	<div class="pages">
+		<header class="ui-header ui-header-positive ui-border-b headers">
+			<i class="ui-icon-return" @click="back"></i>
+			<h1>延长任务时间</h1>
+		</header>
+		<div class="ui-form ui-border-t ui-border-b" style="margin-top: 30px;">
+			<div class="ui-row-flex ui-whitespace line">
+				<label><i class="fa fa-clock-o" style="font-size: 16px;padding:0.5em  0.4em  0 0;"></i></label>
+				<div class="ui-col ui-col-5 lineblock selectbox">
+					<input class="timeinput" name="" type="number" placeholder="延长小时数" v-model="hour">
+					<div class="time">时</div>
+				</div>
+				<div class="ui-col ui-col-5 lineblock selectbox">
+					<input class="timeinput" name="" type="number" placeholder="延长分钟数" v-model="minute">
+					<div class="time">分</div>
+				</div>
+			</div>
+			<div class="ui-btn-wrap" style="background:#e0e0e0;">
+				<button class="ui-btn-lg ui-btn-danger" type="submit" @click="submit">提交</button>
+			</div>
+		</div>
+		<span class="ui-whitespace">提示: 请输入需要延长的小时数和分钟数。</span>
+	</div>
+	<script src="js/zepto.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script src="js/webLib.min.js"></script>
+	<script src="js/WebViewJavascriptBridge.min.js"></script>
+	<script>
+		var wb;
+		var load = function() {
+			var vm = new Vue({
+				el: '#vReleaseTask',
+
+				data: function() {
+					return {
+						hour: '',
+						minute: '',
+						task_id: '',
+					}
+				},
+
+				created: function() {
+					this.loadPreviousData();
+				},
+
+				methods: {
+					/**
+					 * 加载上一页数据
+					 * @return
+					 */
+					loadPreviousData: function() {
+						var self = this;
+						var data = wb.getData();
+
+						if (data !== null && data.demandAttaching_task_id !== null) {
+							self.task_id = data.demandAttaching_task_id;
+						} else {
+							wb.showTip('页面已过期');
+							self.back();
+						}
+					},
+
+					/**
+					 * 提交延长任务时间请求
+					 * @return
+					 */
+					submit: function() {
+						var self = this;
+
+						if (self.checkTimeInput()) {
+							var time = self.hour * 60 + self.minute;
+
+							var params = {
+								url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserTask&a=postExtendTime',
+								ZYRJM: window.webEvn.token,
+								task_id: self.task_id,
+								time: time
+							};
+
+							wb.Ajax(params, function(data) {
+								if (data.status == 1) {
+									wb.showTip('提交成功');
+									self.back();
+								} else {
+									wb.showTip(data.info);
+								}
+							});
+						}
+					},
+
+					/**
+					 * 校验输入内容的合法性
+					 * @return
+					 */
+					checkTimeInput: function() {
+
+						if ((this.hour == '' || this.hour == null) &&
+							(this.minute == '' || this.minute == null)) {
+							wb.showTip('请输入任务截止时间');
+							return false;
+						}
+
+						if (this.hour == '' || this.hour == 0) {
+							if (!(/^([+-]?)\d*\.?\d+$/.test(this.minute)) || this.minute <= 0) {
+								wb.showTip('请输入正确的任务截止分钟数');
+								return false;
+							}
+						}
+
+						if (this.minute == '' || this.minute == 0) {
+							if (!(/^([+-]?)\d*\.?\d+$/.test(this.hour)) || this.hour <= 0) {
+								wb.showTip('请输入正确的任务截止小时数');
+								return false;
+							}
+						}
+
+						return true;
+					},
+
+					/**
+					 * 返回至上一级页面
+					 * @return
+					 */
+					back: function() {
+						window.history.back();
+					}
+				}
+			});
+
+			window.webEvn.close = vm.back;
+		};
+
+		$(document).ready(function() {
+			wb = new webLib();
+			wb.debug(true);
+			wb.init(load, true);
+		});
+	</script>
+</body>
+
+</html>

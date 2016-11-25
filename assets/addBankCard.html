@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<title>添加银行卡</title>
+	<link rel="stylesheet" href="css/frozen.min.css">
+	<link rel="stylesheet" href="css/common.min.css">
+</head>
+
+<body id="app">
+	<div class="pages">
+		<header class="ui-header ui-header-positive ui-border-b headers">
+			<i class="ui-icon-return" @click="back"></i>
+			<h1>添加银行卡</h1>
+		</header>
+
+		<div class="ui-form ui-border-t form" style="margin-top: 0.2rem;">
+			<div class="ui-form-item ui-form-item-show ui-border-b">
+				<label for="">持卡人</label>
+				<input type="text" placeholder="请填写银行卡持卡人" id="realname" v-model="realname">
+				<a class="ui-icon-close" @click="trashInput(0, '#realname')"></a>
+			</div>
+			<div class="ui-form-item  ui-border-b">
+				<label for="">卡号</label>
+				<input type="number" placeholder="请填写银行卡卡号" id="card-number" v-model="card_number">
+				<a class="ui-icon-close" @click="trashInput(1, '#card-number')"></a>
+			</div>
+			<div class="ui-form-item ui-border-b">
+				<label for="">银行名称</label>
+				<input type="text" placeholder="请填写所在银行名称" id="card-name" v-model="card_name">
+				<a class="ui-icon-close" @click="trashInput(2, '#card-name')"></a>
+			</div>
+		</div>
+
+		<div class="ui-btn-wrap">
+			<button class="ui-btn-lg ui-btn-danger" @click="submit">提交</button>
+		</div>
+
+	</div>
+	<script src="js/zepto.min.js"></script>
+	<script src="js/vue.min.js"></script>
+	<script src="js/webLib.min.js"></script>
+	<script src="js/WebViewJavascriptBridge.min.js"></script>
+	<script>
+		var load = function() {
+			var vm = new Vue({
+				el: '#app',
+
+				data: function() {
+					return {
+						realname: '', // 持有人
+						card_number: '', // 卡号
+						card_name: '', // 银行名称
+
+						submitBtnDisabled: false // 是否无法再次提交
+					};
+				},
+
+				methods: {
+					/**
+					 * 提交申请银行卡认证请求
+					 * @return
+					 */
+					submit: function() {
+						var self = this;
+
+						if (self.submitBtnDisabled == false && self.checkInput()) {
+							self.submitBtnDisabled = true;
+
+							var params = {
+								url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserBankCard&a=postUserBankCard',
+								ZYRJM: window.webEvn.token,
+								realname: self.realname,
+								card_number: self.card_number,
+								card_name: self.card_name
+							};
+
+							wb.Ajax(params, function(data) {
+								if (data.status == 1) {
+									wb.showTip('提交成功');
+									self.back();
+								} else {
+									self.submitBtnDisabled = false;
+									wb.showTip(data.info);
+								}
+							});
+						}
+					},
+
+					/**
+					 * 清楚用户输入框
+					 * @param  {number} flag     判断指定清空目标
+					 * @param  {string} selector 指定选择器
+					 * @return
+					 */
+					trashInput: function(flag, selector) {
+						switch (parseInt(flag)) {
+							case 0:
+								this.realname = '';
+								break;
+							case 1:
+								this.card_number = '';
+								break;
+							case 2:
+								this.card_name = '';
+								break;
+						}
+						$(selector).focus();
+					},
+
+					/**
+					 * 检查提交参数是否正确
+					 * @return
+					 */
+					checkInput: function() {
+						var self = this;
+
+						// 验证姓名是否合法
+						if (self.realname == '' || !(/^[\u4e00-\u9fa5]+$/.test(self.realname))) {
+							wb.showTip('请输入正确的持卡人名称');
+							return false;
+						}
+
+						if (!self.checkBankAccount(self.card_number)) {
+							wb.showTip('请输入正确的银行账号');
+							return false;
+						}
+
+						if (self.card_name == '') {
+							wb.showTip('请输入银行名称');
+							return false;
+						}
+
+						return true;
+					},
+					/**
+					 * 检查银行卡账号
+					 * @param  {number} bankAccount 银行卡账号
+					 * @return {boolean}            是否正确
+					 */
+					checkBankAccount: function(bankAccount) {
+						var lastNum = bankAccount.substr(bankAccount.length - 1, 1); //取出最后一位（与luhm进行比较）
+						var preNum = bankAccount.substr(0, bankAccount.length - 1); //前15或18位
+
+						var preNumArr = [];
+						for (var i = preNum.length - 1; i > -1; i--) { //前15或18位倒序存进数组
+							preNumArr.push(preNum.substr(i, 1));
+						}
+
+						var oddArr = []; //奇数位*2的积 <9
+						var odd2 = []; //奇数位*2的积 >9
+						var evenArr = []; //偶数位数组
+
+						for (var j = 0; j < preNumArr.length; j++) {
+							if ((j + 1) % 2 == 1) { //奇数位
+								if (parseInt(preNumArr[j]) * 2 < 9) {
+									oddArr.push(parseInt(preNumArr[j]) * 2);
+								} else {
+									odd2.push(parseInt(preNumArr[j]) * 2);
+								}
+							} else { //偶数位
+								evenArr.push(preNumArr[j]);
+							}
+						}
+
+						var odd_child1 = []; //奇数位*2 >9 的分割之后的数组个位数
+						var odd_child2 = []; //奇数位*2 >9 的分割之后的数组十位数
+						for (var h = 0; h < odd2.length; h++) {
+							odd_child1.push(parseInt(odd2[h]) % 10);
+							odd_child2.push(parseInt(odd2[h]) / 10);
+						}
+
+						var sum_odd = 0; //奇数位*2 < 9 的数组之和
+						var sum_even = 0; //偶数位数组之和
+						var sum_odd_child1 = 0; //奇数位*2 >9 的分割之后的数组个位数之和
+						var sum_odd_child2 = 0; //奇数位*2 >9 的分割之后的数组十位数之和
+						var sumTotal = 0;
+
+						for (var m = 0; m < oddArr.length; m++) {
+							sum_odd = sum_odd + parseInt(oddArr[m]);
+						}
+
+						for (var n = 0; n < evenArr.length; n++) {
+							sum_even = sum_even + parseInt(evenArr[n]);
+						}
+
+						for (var p = 0; p < odd_child1.length; p++) {
+							sum_odd_child1 = sum_odd_child1 + parseInt(odd_child1[p]);
+							sum_odd_child2 = sum_odd_child2 + parseInt(odd_child2[p]);
+						}
+
+						//计算总和
+						sumTotal = parseInt(sum_odd) + parseInt(sum_even) + parseInt(sum_odd_child1) + parseInt(sum_odd_child2);
+
+						//计算Luhm值
+						var k = parseInt(sumTotal) % 10 == 0 ? 10 : parseInt(sumTotal) % 10;
+						var luhm = 10 - k;
+
+						return lastNum == luhm ? true : false;
+					},
+
+					/**
+					 * 返回至上一级页面
+					 * @return
+					 */
+					back: function() {
+						window.history.back();
+					},
+				},
+			});
+
+			window.webEvn.close = vm.back;
+		};
+
+		$(document).ready(function() {
+			wb = new webLib();
+			wb.debug(true);
+			wb.init(load, true);
+		});
+	</script>
+</body>
+
+</html>

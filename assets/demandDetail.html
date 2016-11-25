@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>需求详情</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/demandDetail.min.css">
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+</head>
+
+<body style="background:#dddddd;" id="app">
+    <div class="z-pages" style="background:#FFF;">
+        <header class="ui-header ui-header-positive ui-border-b headers z-header">
+            <i class="ui-icon-return" @click="close"></i>
+            <h1>任务详情</h1>
+        </header>
+        <div class="detail_man z-userinfo-wrap">
+            <div class="ui-row-flex">
+                <div class="ui-col">
+                    <img class="demand_headpic" :src="taskInfo.url" @click="showBigHeadImg" />
+                </div>
+                <div class="ui-col ui-col-4">
+                    <div class="ui-flex">
+                        <span class="" v-text="taskInfo.username" style="color: #595755;font-size: 0.2rem;vertical-align: middle;"></span>
+                        <img :src="genderImg" style="width: 20px; height: 20px;vertical-align: middle;margin-left: 5px;">
+                        <span v-text="taskInfo.level" class="z-userinfo-level" style="vertical-align: middle;margin-left: 5px;"></span>
+                    </div>
+                    <div class="ui-flex">
+                        <img src="img/detail/location.png" style="width: 22px; height: 22px;vertical-align: middle;">
+                        <span style="vertical-align: middle; margin-left: -2px;color: #c6c6c6;" v-text="taskInfo.address"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui-nowrap" v-text="taskInfo.title" style="color: #3b3937;width: 100%; height: 0.6rem; line-height: 0.6rem;text-align: center;font-size: 0.19rem;"></div>
+        <div class="ui-row-flex ui-whitespace demand_message z-taskinfo-span">
+            <div class="ui-col ui-col-2" style="text-align: center;">
+                <img src="img/detail/hot.png" style="width: 22px;">
+                <span v-text="taskInfo.hot"></span><span>热度</span>
+            </div>
+            <div class="ui-col ui-col-3" style="text-align:center;">
+                <img src="img/detail/time.png" style="width: 22px;">
+                <span v-text="taskInfo.created_at"></span>
+            </div>
+            <div class="ui-col ui-col-2 ui-nowrap" style="text-align:left;color:#E8A21A;">
+                <img src="img/detail/reward.png" style="width: 22px;">
+                <span v-text="taskInfo.reward"></span>
+            </div>
+        </div>
+        <div class="z-task-wrap">
+            <div>
+                <div class="z-taskphoto-wrap border-b" v-if="taskInfo.image_url.length > 0">
+                    <div v-for="img of taskInfo.image_url"><img :src="img" track-by="$index" style="width: 100%;" /></div>
+                </div>
+                <div class="demandsmsg" style="border-bottom: 1px solid #dddddd;">
+                    <div class="z-task-detail-line" style="border-bottom: 1px dashed #c6c6c6;">
+                        <img src="img/detail/reward.png" style="width: 22px;vertical-align: middle;">
+                        <div class="z-font-taskinfo-left" style="vertical-align: middle;">佣金:</div>
+                        <div class="moneynumber" v-text="taskInfo.reward" style="display: inline; vertical-align: middle;color: #fdaa0b;font-size: 0.15rem;"></div>
+                        <span style="vertical-align: middle;" class="z-font-taskinfo-right">元</span>
+                    </div>
+                    <div class="z-task-detail-line" style="border-bottom: 1px dashed #c6c6c6;">
+                        <img src="img/detail/time.png" style="width: 22px; vertical-align: middle;">
+                        <div class="z-font-taskinfo-left msg-task-address" style="vertical-align: middle;">剩余时间:</div>
+                        <span class="ui-nowrap msg_details z-font-taskinfo-right" v-text="taskInfo.restTime" style="display: inline;vertical-align:middle;"></span>
+                    </div>
+                    <div class="" style="border-bottom: 1px dashed #c6c6c6;min-height: 0.35rem;color: #A5A4A4;line-height: 0.35rem;">
+                        <img src="img/detail/address.png" style="width: 22px; vertical-align: middle;">
+                        <div class="z-font-taskinfo-left msg-task-address" style="vertical-align: middle;">任务地址:</div>
+                        <span class="demand_address z-font-taskinfo-right" v-text="taskInfo.address" style="width: 60%;vertical-align: middle;word-break: break-all;"></span>
+                    </div>
+                    <div style="display: inline-block;vertical-align: top; margin-top: 5px;"><img src="img/detail/detail.png" style="width: 22px;"></div>
+                    <div class="z-font-taskinfo-left" style="">详情:</div>
+                    <div class="msg_details z-font-taskinfo-right" v-text="taskInfo.detail" style="word-break: break-all;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <footer class="ui-footer ui-footer-stable ui-border-t demand_foot btn-demanddetail-single" style="background-color: #fc761a;">
+        <button class="btn-demanddetail-1" @click="go2PullTask">领取此任务</button>
+    </footer>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+        var vmData = {
+            preUrl: 'http://www.renrenshangjin.com/',
+            defaultImg: 'img/user_header.png',
+            smImg: '%23S%23.',
+            middleImg: '%23M%23.',
+            boyImg: 'img/detail/boy.png',
+            girlImg: 'img/detail/girl.png'
+        };
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        taskInfo: {
+                            task_id: '',
+                            title: '',
+                            deadline: '',
+                            reward: '',
+                            username: '',
+                            sex: '',
+                            level: 'LV.1',
+                            created_at: '',
+                            url: vmData.defaultImg,
+                            image_url: [],
+                            restTime: ''
+                        },
+                        mobile: '',
+                        _task_id: '',
+                        preUrl: vmData.preUrl,
+                        defaultImg: vmData.defaultImg,
+                        smImg: vmData.smImg,
+                        middleImg: vmData.middleImg,
+                        genderImg: vmData.boyImg
+                    }
+                },
+
+                created: function() {
+                    this.loadPreviousData();
+                    this.loadTaskInfo();
+                },
+
+                methods: {
+                    /**
+                     * 加载任务需求详情
+                     * @return
+                     */
+                    loadTaskInfo: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postDetail',
+                            ZYRJM: window.webEvn.token,
+                            task_id: self._task_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                self.taskInfo = data.task;
+                                self.mobile = data.mobile;
+
+                                var now = Date.now();
+                                var restSecs = self.taskInfo.effictive_time * 60 - (now - self.taskInfo.created_at * 1000) / 1000;
+                                self.taskInfo.restTime = self.formatSec(restSecs);
+
+                                if (self.taskInfo.url !== null && self.taskInfo.url !== '') {
+                                    self.taskInfo.url = self.preUrl + self.taskInfo.url.replace('\.', self.smImg);
+                                } else {
+                                    self.taskInfo.url = self.defaultImg;
+                                }
+
+                                if (self.taskInfo.image_url == null) {
+                                    self.taskInfo.image_url = [];
+                                }
+
+                                if (self.taskInfo.image_url.length !== 0) {
+                                    self.taskInfo.image_url.forEach(function(item, index) {
+                                        // self.taskInfo.image_url.$set(index, self.preUrl + item.replace(/\./, self.middleImg));
+                                        self.taskInfo.image_url.$set(index, self.preUrl + item);
+                                    });
+                                }
+
+                                if (self.taskInfo.level != null) {
+                                    self.taskInfo.level = 'LV.' + self.taskInfo.level;
+                                }
+
+                                if (self.taskInfo.sex == '女') {
+                                    self.genderImg = vmData.girlImg;
+                                } else {
+                                    self.genderImg = vmData.boyImg;
+                                }
+
+                                var date = new Date(data.task.created_at * 1000);
+                                self.taskInfo.created_at = (date.getMonth() + 1) + "月" + date.getDate() + "日 " + date.getHours() + ":" + date.getMinutes();
+
+                                wb.Location(function(city){
+                                    if (city != null) {
+                                        var dis
+                                        if (self.taskInfo.latitude == -2 || self.taskInfo.longitude == -2) {
+                                            dis = 0
+                                        } else {
+                                            dis = self.rad2dis(city.latitude, city.lontitude, self.taskInfo.latitude, self.taskInfo.longitude);
+                                            dis = (Number.isNaN(dis) !== true ? dis : 0);
+                                        }
+                                        self.taskInfo.address += ' ('+ dis +'千米)'
+                                    }
+                                });
+                            } else {
+                                wb.showTip(data.info);
+                                self.close();
+                            }
+                        });
+                    },
+
+                    /**
+                     * 获取上一页保存的数据
+                     * @return
+                     */
+                    loadPreviousData: function() {
+                        var self = this;
+                        var data = wb.getData();
+
+                        if (data != null && data.indexData_task_id != null) {
+                            self._task_id = data.indexData_task_id;
+                        } else {
+                            wb.showTip('加载失败，请重试');
+                            self.close();
+                        }
+                    },
+
+                    /**
+                     * 保存当前页面的指定数据
+                     * @return
+                     */
+                    keepCurrentData: function() {
+                        var data = wb.getData();
+
+                        if (data == null) {
+                            data = {};
+                        }
+                        data.demandDetailData_task_id = this.taskInfo.task_id;
+
+                        wb.setData(data, function() {
+                            window.location.href = 'pullTask.html';
+                        });
+                    },
+
+                    /**
+                     * 查看头像大图
+                     * @return
+                     */
+                    showBigHeadImg: function() {
+                        var param = {};
+                        param.remoteUrl = (this.taskInfo.url.indexOf(this.smImg) != -1) ?
+                            this.taskInfo.url.replace(this.smImg, '\.') : this.taskInfo.url;
+
+                        wb.ImageShow(param);
+                    },
+
+                    /**
+                     * 剩余时间格式化
+                     * @param  {number} seconds - 剩余秒数
+                     * @return
+                     */
+                    formatSec: function(seconds) {
+                        var sec = parseInt(seconds);
+                        var minutes = 0;
+                        var hours = 0;
+
+                        if (sec > 60) {
+                            minutes = parseInt(sec / 60);
+
+                            if (minutes > 60) {
+                                hours = parseInt(minutes / 60);
+                                minutes = parseInt(minutes % 60);
+                            }
+                        }
+
+                        var result = '剩余';
+
+                        if (hours > 0) {
+                            result += hours + '小时';
+                        }
+                        if (minutes > 0) {
+                            result += minutes + '分钟';
+                        }
+                        if (hours <= 0 && minutes <= 0 && sec > 0) {
+                            result += sec + '秒';
+                        }
+                        if (hours == 0 && minutes == 0 && sec == 0) {
+                            result = '已到期';
+                        }
+                        return result;
+                    },
+
+                    /**
+                     * 角度转为弧度
+                     * @return {[type]} [description]
+                     */
+                    deg2rad: function(degree) {
+                        return degree * Math.PI / 180;
+                    },
+
+                    /**
+                     * 经纬度转为距离
+                     * @param  {[type]} lng1 [description]
+                     * @param  {[type]} lat1 [description]
+                     * @param  {[type]} lng2 [description]
+                     * @param  {[type]} lat2 [description]
+                     * @return {[type]}      [description]
+                     */
+                    rad2dis: function(lng1, lat1, lng2, lat2) {
+                        var radLat1 = this.deg2rad(lat1);
+                        var radLat2 = this.deg2rad(lat2);
+                        var radLng1 = this.deg2rad(lng1);
+                        var radLng2 = this.deg2rad(lng2);
+                        var par1 = radLat1 - radLat2;
+                        var par2 = radLng1 - radLng2;
+                        return Math.round((2 * Math.asin(Math.sqrt(Math.pow(Math.sin(par1 / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(par2 / 2), 2))) * 6378.137) * 100) / 100;
+                    },
+
+                    /**
+                     * 跳转至领取任务页面
+                     * @return
+                     */
+                    go2PullTask: function() {
+                        this.keepCurrentData();
+                    },
+
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    close: function() {
+                        wb.Finish();
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.close;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

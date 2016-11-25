@@ -1,0 +1,23 @@
+.messageblock{display:-webkit-box;height:20px;line-height:20px;font-size:14px;padding:5px 10px;color:#666;border-bottom:1px solid #e0e0e0}.pull-right{float:right}.choose{position:absolute;top:8px;right:0}.choose2{position:absolute;top:8px;right:0}.messageblock{
+	display: -webkit-box;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
+    padding: 5px 10px;
+	color: #666666;
+    border-bottom: 1px solid #e0e0e0;
+}
+.pull-right
+{
+	float:right;
+}
+.choose{
+	position:absolute;
+	top:8px;
+	right:0;
+}
+.choose2{
+	position:absolute;
+	top:8px;
+	right:0;
+}

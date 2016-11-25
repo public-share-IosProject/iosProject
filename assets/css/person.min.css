@@ -1,0 +1,112 @@
+.messages .messageline_head {
+    height: 60px;
+    border-top: 3px solid #e0e0e0;
+    line-height: 60px;
+    background: white;
+    margin-top: 30px;
+    font-size: 12px;
+}
+
+.upload-img-area {
+    position: absolute;
+    width: 65%;
+    height: 60px;
+}
+
+.messages .messageline {
+    height: 40px;
+    border-top: 1px solid #e0e0e0;
+    line-height: 40px;
+    background: white;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.msghead {
+    text-align: left;
+    color: black;
+}
+
+.i1 {
+    top: 85px;
+    right: 0px;
+    position: absolute;
+}
+
+.i2 {
+    top: 140px;
+    right: 0px;
+    position: absolute;
+}
+
+.i3 {
+    top: 180px;
+    right: 0px;
+    position: absolute;
+}
+
+.i4 {
+    top: 225px;
+    right: 0px;
+    position: absolute;
+}
+
+.i5 {
+    top: 265px;
+    right: 0px;
+    position: absolute;
+}
+
+.i6 {
+    top: 310px;
+    right: 0px;
+    position: absolute;
+}
+
+.i7 {
+    top: 355px;
+    right: 0px;
+    position: absolute;
+}
+
+.i8 {
+    top: 395px;
+    right: 0px;
+    position: absolute;
+}
+
+.ui-col-7 {
+    text-align: right;
+    padding-right: 15px;
+    color: #d1d1d1;
+    line-height: 45px;
+}
+
+.ui-col-7 .imgs {
+    padding-top: 10px;
+    width: 40px;
+    height: 40px;
+}
+
+.ui-col-7 .level {
+    color: #FFAE38;
+}
+
+.ui-col-7 .point {
+    color: #FE6755;
+}
+
+.v-star-cell {
+    display: inline-block;
+}
+
+.v-icon-star {
+    width: 25px;
+    height: 25px;
+    font-size: 45px;
+    line-height: 35px;
+}
+
+.v-star-gold {
+    color: #FFAE38;
+}

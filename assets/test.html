@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<script src="js/WebViewJavascriptBridge.min.js"></script>
+	<script src="js/webLib.min.js"></script>
+</head>
+<body>
+<button type="button" class="btn btn-primary" onclick="cityChooce()">选择城市</button>
+<script type="text/javascript">
+	var wb=new webLib();
+
+	var webInit= function(){
+		wb.Location(function(data){
+			document.getElementById("location").innerHTML=JSON.stringify(data);
+		},true);
+		window.webEvn.close=function(){
+			wb.Finish();
+		}
+		console.log("location");
+	}
+	wb.init(webInit,false);
+
+	function cityChooce(){
+		console.log("城市选择器");
+		wb.CityChooce(function(data){
+			document.getElementById("city").innerHTML=JSON.stringify(data);
+		});
+	}
+
+</script>
+<div id="location">这里显示地址</div>
+<div id="city">选中的城市</div>
+</body>
+</html>

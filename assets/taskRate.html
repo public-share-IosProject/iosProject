@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>任务评分</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/demandDetail.min.css">
+
+    <style>
+        .vux-rater {
+            text-align: left;
+            display: inline-block;
+            line-height: normal;
+        }
+
+        .vux-rater a {
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+            color: #ccc;
+        }
+
+        .vux-rater a:last-child {
+            padding-right: 2px!important;
+            margin-right: 0px!important;
+        }
+
+        .vux-rater a:hover {
+            color: #ffdd99;
+        }
+
+        .vux-rater a.is-disabled {
+            color: #ccc !important;
+            cursor: not-allowed;
+        }
+
+        .vux-rater-box {
+            position: relative;
+        }
+
+        .vux-rater-inner {
+            position: relative;
+            display: inline-block;
+        }
+
+        .vux-rater-outer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: inline-block;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body id="app" style="background-color: #fff">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>任务评分</h1>
+        </header>
+        <div class="detail_man" style="margin-top: 10px;">
+            <div class="demand_man_block">
+                <img class="demand_headpic" :src="taskInfo.user_image" />
+                <span class="msges" v-text="taskInfo.username"></span>
+                <span class="msges" v-text="taskInfo.sex"></span>
+                <span class="level" v-text="taskInfo.level"></span>
+            </div>
+        </div>
+        <div style="margin-top: 25px;">
+            <span style="margin-left: 15px; font-size: 0.2rem;">满意程度</span>
+            <my-rate :value.sync="score" style="margin-left: 25px;"></my-rate>
+        </div>
+        <div class="ui-whitespace" style="margin-top: 25px;">请从任务完成质量、响应速度、赏金服务三个方面对该用户进行评分。</div>
+        <div class="ui-btn-wrap" style="margin-top: 50px;">
+            <button class="ui-btn-lg ui-btn-danger" type="submit" @click="submit" :disabled="btnDisabled">提交评分</button>
+        </div>
+    </div>
+
+    <script type="text/template" id="myRate">
+        <div class="vux-rater">
+            <a class="vux-rater-box" v-for="i in max" @click="handleClick(i)" :class="{'is-active':value > i}" :style="{color: colors && colors[i] ? colors[i] : '#ccc',marginRight:margin+'px',fontSize: fontSize + 'px', width: fontSize + 'px', height: fontSize + 'px', lineHeight: fontSize + 'px'}">
+                <span class="vux-rater-inner">
+    			    {{star}}
+    			    <span class="vux-rater-outer"
+    			    :style="{color: activeColor, width: cutPercent + '%'}"
+    			    v-if="cutPercent > 0 && cutIndex === i">
+    			    {{star}}
+    		 	    </span>
+                </span>
+            </a>
+        </div>
+    </script>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            defaultImg: 'img/user_header.png',
+            smImg: '%23S%23.jpg'
+        }
+        var wb;
+
+        var rate = Vue.extend({
+            template: '#myRate',
+            ready: function() {
+                this.updateStyle()
+            },
+            props: {
+                max: {
+                    type: Number,
+                    default: 5
+                },
+                value: {
+                    type: Number,
+                    default: 0
+                },
+                disabled: Boolean,
+                star: {
+                    type: String,
+                    default: '★'
+                },
+                activeColor: {
+                    type: String,
+                    default: '#fc6'
+                },
+                margin: {
+                    type: Number,
+                    default: 2
+                },
+                fontSize: {
+                    type: Number,
+                    default: 35
+                }
+            },
+            computed: {
+                sliceValue: function() {
+                    const _val = this.value.toString().split('.')
+                    return _val.length === 1 ? [_val[0], 0] : _val
+                },
+                cutIndex: function() {
+                    return this.sliceValue[0] * 1
+                },
+                cutPercent: function() {
+                    return this.sliceValue[1] * 10
+                }
+            },
+            methods: {
+                handleClick: function(i, force) {
+                    if (!this.disabled || force) {
+                        if (this.value === i + 1) {
+                            this.value = i
+                            this.updateStyle()
+                        } else {
+                            this.value = i + 1
+                        }
+                    }
+                },
+                updateStyle: function() {
+                    for (var j = 0; j < this.max; j++) {
+                        if (j <= this.value - 1) {
+                            this.colors.$set(j, this.activeColor)
+                        } else {
+                            this.colors.$set(j, '#ccc')
+                        }
+                    }
+                }
+            },
+            data: function() {
+                return {
+                    colors: [],
+                    cutIndex: -1,
+                    cutPercent: 0
+                }
+            },
+            watch: {
+                value: function(val) {
+                    this.updateStyle()
+                }
+            }
+        });
+
+        var load = function() {
+            var vm = new Vue({
+                el: '#app',
+
+                data: function() {
+                    return {
+                        taskInfo: {
+                            user_image: vmData.defaultImg
+                        },
+                        score: 0,
+                        btnDisabled: true
+                    };
+                },
+
+                created: function() {
+                    this.loadData();
+                },
+
+                methods: {
+
+                    loadData: function() {
+                        var self = this;
+                        var data = wb.getData();
+
+                        if (data !== null && data.demandReleaseSolved_data !== null) {
+                            self.taskInfo = data.demandReleaseSolved_data;
+                            self.taskInfo.user_image = self.taskInfo.user_image.replace('\.jpg', vmData.smImg);
+                        }
+                    },
+
+                    submit: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=postUserScore',
+                            ZYRJM: window.webEvn.token,
+                            receiver_id: self.taskInfo.receiver_id,
+                            task_id: self.taskInfo.task_id,
+                            score: self.score
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                wb.showTip(data.info);
+                                self.close();
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+                    /**
+                     * 关闭当前页面
+                     * @return
+                     */
+                    back: function() {
+                        window.history.back();
+                    },
+
+                    close: function() {
+                        wb.Finish();
+                    }
+                },
+
+                components: {
+                    'my-rate': rate
+                },
+
+                watch: {
+                    'score': function(score) {
+                        if (score <= 0) {
+                            this.btnDisabled = true;
+                        } else {
+                            this.btnDisabled = false;
+                        }
+                        this.btnDisabled = (score <= 0) ? true : false;
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bridge page</title>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var wb;
+
+        var load = function() {
+            bridge();
+
+            window.webEvn.close = close;
+        };
+
+        var close = function() {
+            wb.Finish();
+        }
+
+        /**
+         * 判断跳转页面
+         * @return
+         */
+        function bridge() {
+            var data = wb.getData();
+
+            if (data !== null) {
+                var msg = {
+                    id: data.id,
+                    type: data.type,
+                    created_at: data.created_at,
+                    sender_id: data.sender_id,
+                    detail: data.detail,
+                    task_id: data.task_id,
+                    is_read: data.is_read
+                };
+
+                data.userMsgData = msg;
+
+                if (msg.is_read == 0) {
+                    var params = {
+                        url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserMessage&a=postMessageSet',
+                        ZYRJM: window.webEvn.token,
+                        message_id: msg.id
+                    };
+                    wb.Ajax(params, function(data) {});
+                }
+
+                switch (parseInt(msg.type)) {
+                    case 1:
+                        taskResultHelper(msg.task_id, msg.type, function(address) {
+                            if (address !== '') {
+                                wb.setData(data, function() {
+                                    window.location.href = address;
+                                });
+                            } else {
+                                wb.showTip('未知错误');
+                                close();
+                            }
+                        });
+                        break;
+                    case 2:
+                        wb.setData(data, function() {
+                            window.location.href = 'friendReq.html';
+                        });
+                        break;
+                    case 3:
+                        wb.setData(data, function() {
+                            window.location.href = 'extendReq.html';
+                        });
+                        break;
+                    case 4:
+                        wb.setData(data, function() {
+                            window.location.href = 'withdrawResult.html';
+                        });
+                        break;
+                    case 5:
+                        wb.setData(data, function() {
+                            window.location.href = 'msgResult.html';
+                        });
+                        break;
+                    case 10:
+                        taskResultHelper(msg.task_id, msg.type, function(address) {
+                            if (address !== '') {
+                                wb.setData(data, function() {
+                                    window.location.href = address;
+                                });
+                            } else {
+                                wb.showTip('未知错误');
+                                close();
+                            }
+                        });
+                        break;
+                }
+            }
+        }
+
+
+        /**
+         * 任务类型判断
+         * @param  {[type]}   task_id  [description]
+         * @param  {[type]}   type     [description]
+         * @param  {Function} callback [description]
+         * @return
+         */
+        function taskResultHelper(task_id, type, callback) {
+            var params = {
+                url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postCheckTaskType',
+                ZYRJM: window.webEvn.token,
+                task_id: task_id,
+                type: type
+            };
+
+            wb.Ajax(params, function(data) {
+                var href = '';
+
+                if (data.status == 1 && data.task_type != 0) {
+                    switch (parseInt(data.task_type)) {
+                        case 1:
+                            href = 'demandReleased.html';
+                            break;
+                        case 2:
+                            href = 'demandReleasing.html';
+                            break;
+                        case 3:
+                            href = 'demandAttached.html';
+                            break;
+                        case 4:
+                            href = 'demandReleaseSolved.html';
+                            break;
+                        case 5:
+                            href = 'demandReleaseUnsolved.html';
+                            break;
+                        case 6:
+                            href = 'demandAttachUnsolved.html';
+                            break;
+                    }
+
+                    callback(href);
+                } else {
+                    wb.showTip('消息已过期');
+                    close();
+                }
+            });
+        }
+
+        wb = new webLib();
+        wb.init(load, true);
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>领取任务</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+    <link rel="stylesheet" href="css/task.min.css">
+</head>
+
+<body id="vPullTask">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>领取任务</h1>
+        </header>
+        <div class="ui-row-flex ui-whitespace task_line" style="margin-top: 5px;">
+            <div class="ui-col ui-col-2 ui-nowrap task_line_title">任务标题: <span v-text="taskInfo.title"></span></div>
+            <div class="ui-col">
+                <div class="task_money">
+                    <img class="moneypic" src="img/money.png" />
+                    <div class="moneynumber" v-text="taskInfo.reward"></div>
+                </div>
+                <div class="residual">
+                    <!-- 剩余<span v-text="taskInfo.hour"></span>小时<span v-text="taskInfo.minute"></span>分 -->
+                    <span v-text="task_restTime"></span>
+                </div>
+            </div>
+        </div>
+        <div class="ui-form ui-border-t ">
+            <div class="ui-form-item ui-form-item-textarea ui-border-b task_textarea_block">
+                <textarea class="task_textarea" placeholder="描述您的备注/留言" v-model="receiver_content"></textarea>
+            </div>
+        </div>
+        <div class="ui-row-flex" style="margin-top: 15px;">
+            <div class="ui-col ui-flex ui-flex-pack-center">
+                <button class="ui-btn-lg" :class="{active : pointActive}" value="1" @click="choosePoint" :disabled="count == 0" v-text="'免费需求卡:' + count"></button>
+            </div>
+            <div class="ui-col ui-flex ui-flex-pack-center">
+                <button class="ui-btn-lg" :class="{active : cardActive}" value="2" @click="chooseCard">使用需求卡</button>
+            </div>
+        </div>
+        <div class="ui-form-item ui-border-b" style="background: #fff; margin-top: 10px; font-size: 15px;" v-show="showSelect">
+            <div class="ui-select" style="margin-left: 0px;">
+                <select v-model="card_id" onchange="go2BuyCard()">
+                    <option value="" selected hidden disabled>请选择需求卡</option>
+                    <option :value="card.id" v-for="card in cards" v-text="card.created_at"></option>
+                </select>
+            </div>
+        </div>
+        <div class="task_introduce">
+            <span class="task_introduce_kid">提示:每日赠送的需求卡耗尽后需购买额外的需求卡。</span>
+            <span class="task_introduce_kid">1、领取此任务后，主人会收到消息提醒。</span>
+            <span class="task_introduce_kid">2、开始进行此任务后，您可以和主人实时聊天。</span>
+        </div>
+        <div class="ui-btn-wrap" style="padding-top:30px;">
+            <button class="ui-btn-lg ui-btn-danger" @click="submit">确认领取此任务</button>
+        </div>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script>
+        var vmData = {
+            newWinCmd: 'demand://'
+        };
+
+        var wb, vm;
+
+        var load = function() {
+            vm = new Vue({
+                el: '#vPullTask',
+
+                data: function() {
+                    return {
+                        taskInfo: {},
+                        receiver_content: '',
+                        task_id: '',
+                        cards: [],
+                        isCardsZero: true,
+                        count: 0,
+                        pay_type: 1,
+                        showSelect: false,
+                        pointActive: true,
+                        cardActive: false,
+                        card_id: null,
+                        task_restTime: ''
+                    };
+                },
+
+                created: function() {
+                    this.loadPreviousData();
+                    this.loadTaskInfo();
+                    this.loadPointCardInfo();
+                },
+
+                methods: {
+                    loadPreviousData: function() {
+                        var data = wb.getData();
+                        console.log(data);
+                        if (data !== null && data.demandDetailData_task_id !== null) {
+                            this.task_id = data.demandDetailData_task_id;
+
+                            if (data.pullTask_receiver_content !== null) {
+                                this.receiver_content = data.pullTask_receiver_content;
+                            }else {
+                                this.receiver_content = '';
+                            }
+                        } else {
+                            wb.showTip('页面已过期');
+                            this.back();
+                        }
+                    },
+
+                    /**
+                     * 页面加载前获取任务信息
+                     * @return
+                     */
+                    loadTaskInfo: function() {
+                        var self = this;
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postDetail',
+                            ZYRJM: window.webEvn.token,
+                            task_id: self.task_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1 && data.task != null) {
+                                // var total_minute = data.task.deadline;
+                                // var hour = parseInt(total_minute / 60);
+                                // var minute = total_minute % 60;
+                                self.taskInfo = data.task;
+
+                                var now = Date.now();
+                                var restSecs = self.taskInfo.effictive_time * 60 - (now - self.taskInfo.created_at * 1000) / 1000;
+                                self.task_restTime = self.formatSec(restSecs);
+
+                                // self.taskInfo.hour = hour;
+                                // self.taskInfo.minute = minute;
+                            } else {
+                                wb.showTip(data.info);
+                                self.back();
+                            }
+                        });
+                    },
+
+                    /**
+                     * load the point and demand-card information
+                     * @return
+                     */
+                    loadPointCardInfo: function() {
+                        var self = this;
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserCard&a=getTaskUserCard',
+                            ZYRJM: window.webEvn.token
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                if (data.cards !== null && data.cards.length > 0) {
+                                    self.cards = data.cards;
+
+                                    var now, restSecTime;
+
+                                    self.cards.forEach(function(item) {
+                                        now = Date.now();
+                                        restSecTime = item.effective_time - (now - item.created_at * 1000) / 1000;
+                                        item.created_at = self.formatSec(restSecTime);
+                                    });
+                                    self.isCardsZero = false;
+                                } else {
+                                    var card = {
+                                        created_at: '无更多需求卡,点击此处购买',
+                                    };
+                                    self.cards.push(card);
+                                }
+
+                                if (data.count != null) {
+                                    self.count = data.count.number;
+                                }
+                            } else {
+                                wb.showTip(data.info);
+                            }
+                        });
+                    },
+
+                    /**
+                     * 显示需求卡列表
+                     * @return
+                     */
+                    chooseCard: function() {
+                        this.pay_type = 2;
+                        this.showSelect = true;
+                        this.cardActive = true;
+                        this.pointActive = !this.cardActive;
+                    },
+
+                    /**
+                     * 隐藏需求卡列表
+                     * @return
+                     */
+                    choosePoint: function() {
+                        this.pay_type = 1;
+                        this.showSelect = false;
+                        this.pointActive = true;
+                        this.cardActive = !this.pointActive;
+                    },
+
+                    /**
+                     * 剩余时间格式化
+                     * @param  {number} seconds - 剩余秒数
+                     * @return
+                     */
+                    formatSec: function(seconds) {
+                        var sec = parseInt(seconds);
+                        var minutes = 0;
+                        var hours = 0;
+
+                        if (sec > 60) {
+                            minutes = parseInt(sec / 60);
+
+                            if (minutes > 60) {
+                                hours = parseInt(minutes / 60);
+                                minutes = parseInt(minutes % 60);
+                            }
+                        }
+
+                        var result = '剩余';
+
+                        if (hours > 0) {
+                            result += hours + '小时';
+                        }
+                        if (minutes > 0) {
+                            result += minutes + '分钟';
+                        }
+                        if (hours <= 0 && minutes <= 0 && sec > 0) {
+                            result += sec + '秒';
+                        }
+                        if (hours == 0 && minutes == 0 && sec == 0) {
+                            result = '已到期';
+                        }
+                        return result;
+                    },
+
+                    /**
+                     * submit the request of pull task
+                     * @return
+                     */
+                    submit: function() {
+                        var self = this;
+
+                        if (self.pay_type == 1 && self.count == 0) {
+                            wb.showTip('每日免费需求卡不足');
+                            return;
+                        }
+
+                        if (self.pay_type == 2 && self.isCardsZero == true) {
+                            wb.showTip('需求卡不足');
+                            return;
+                        }
+
+                        var params = {
+                            url: 'http://www.renrenshangjin.com/index.php?m=Home&c=Task&a=postAcceptTask',
+                            ZYRJM: window.webEvn.token,
+                            task_id: self.taskInfo.task_id,
+                            receiver_content: self.receiver_content,
+                            pay_type: self.pay_type,
+                            card_id: self.card_id
+                        };
+
+                        wb.Ajax(params, function(data) {
+                            if (data.status == 1) {
+                                wb.showTip('领取成功');
+                                self.go2MyAttach();
+                            } else {
+                                wb.showTip('领取失败,' + data.info);
+                            }
+                        });
+                    },
+
+                    /**
+                     * 跳转至我的参与
+                     * @return
+                     */
+                    go2MyAttach: function() {
+                        this.clearData(function() {
+                            window.location.href = 'myAttach.html';
+                        });
+                    },
+
+                    /**
+                     * 清除数据
+                     * @return
+                     */
+                    clearData: function(callback) {
+                        var data = wb.getData();
+
+                        if (data.pullTask_receiver_content !== null) {
+                            data.pullTask_receiver_content = null;
+                        }
+                        wb.setData(data, callback);
+                    },
+
+                    /**
+                     * 返回至上一级页面
+                     * @return
+                     */
+                    back: function() {
+                        this.clearData(function() {
+                            window.location.href = 'demandDetail.html';
+                        });
+                    }
+                }
+            });
+
+            window.webEvn.close = vm.back;
+        };
+
+        $(document).ready(function() {
+            wb = new webLib();
+            wb.debug(true);
+            wb.init(load, true);
+        });
+
+        function go2BuyCard() {
+            if (vm.isCardsZero) {
+                var data = wb.getData();
+                data.pullTask_receiver_content = vm.receiver_content
+
+                wb.setData(data, function() {
+                    // window.location.href = vmData.newWinCmd + 'myDemandCard.html';
+                    window.location.href = 'myDemandCard.html';
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

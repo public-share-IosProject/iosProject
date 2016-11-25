@@ -1,0 +1,70 @@
+.task_line {
+    height: 60px;
+    background-color: #FFF;
+    line-height: 60px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.task_line .task_line_title {
+    font-size: 15px;
+    color: #404040;
+}
+
+.task_introduce {
+    margin-top: 10px;
+    height: 60px;
+    line-height: 30px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.task_introduce_kid {
+    height: 40px;
+    padding: 0 10px;
+    -webkit-box-flex: 1;
+    display: block;
+}
+
+.ui-col .task_money {
+    height: 40px;
+    line-height: 40px;
+    text-align: right;
+}
+
+.task_money .moneypic {
+    display: inline-block;
+    vertical-align: middle;
+    width: 25px;
+    height: 25px;
+}
+
+.task_money .moneynumber {
+    display: inline-block;
+    font-size: 14px;
+    height: 40px;
+    line-height: 45px;
+    vertical-align: top;
+    color: #FC103B;
+}
+
+.ui-col .residual {
+    height: 20px;
+    line-height: 10px;
+    color: #CCCCCC;
+    font-size: 12px;
+    text-align: right;
+}
+
+.v-select {
+    margin-left: 0px;
+}
+
+.ui-form-item input,
+.ui-form-item textarea {
+    padding-left: 0px;
+    height: 100px;
+}
+
+.task_textarea_block {
+    height: 120px;
+}

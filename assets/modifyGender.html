@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>更改性别</title>
+    <link rel="stylesheet" href="css/frozen.min.css">
+    <link rel="stylesheet" href="css/common.min.css">
+</head>
+
+<body id="app">
+    <div class="pages">
+        <header class="ui-header ui-header-positive ui-border-b headers">
+            <i class="ui-icon-return" @click="back"></i>
+            <h1>更改性别</h1>
+        </header>
+        <a href="#">
+            <div class="changeline" style="margin-top: 10px;" @click="changeSex('m')">男</div>
+        </a>
+        <a href="#">
+            <div class="changeline" style="margin-top: 8px;" @click="changeSex('w')">女</div>
+        </a>
+    </div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/webLib.min.js"></script>
+    <script src="js/WebViewJavascriptBridge.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script>
+    var wb;
+
+    var load = function() {
+        var vm = new Vue({
+            el: '#app',
+
+            methods: {
+                /**
+                 * 修改用户性别
+                 * @param  {string} sex 性别
+                 * @return
+                 */
+                changeSex: function(sex) {
+                    var self = this;
+
+                    var params = {
+                        url: 'http://www.renrenshangjin.com/index.php?m=Home&c=UserInfomation&a=postUserSexChange',
+                        ZYRJM: window.webEvn.token
+                    };
+
+                    if (sex == 'm') {
+                        params.sex = '男';
+                    } else if (sex == 'w') {
+                        params.sex = '女';
+                    } else {
+                        wb.showTip('请选择性别');
+                        return;
+                    }
+
+                    wb.Ajax(params, function(data) {
+                        if (data.status == 1) {
+                            self.back();
+                        } else {
+                            wb.showTip(data.info);
+                        }
+                    });
+                },
+
+                /**
+                 * 返回至上一层页面
+                 * @return
+                 */
+                back: function() {
+                    window.location.href = 'userInfo.html';
+                }
+            }
+        });
+
+        window.webEvn.close = vm.back;
+    };
+
+    $(document).ready(function() {
+        wb = new webLib();
+        wb.debug(true);
+        wb.init(load, true);
+    });
+    </script>
+</body>
+
+</html>
